@@ -5,62 +5,78 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Blog App</title>
 <style>
-:root{--bg:#f6f5f1;--card:#fff;--ink:#1d1d1b;--mut:#6b6b66;--line:#e4e2da;--acc:#1f6f5c;--acc-ink:#fff;--danger:#b3261e}
-@media(prefers-color-scheme:dark){:root{--bg:#141413;--card:#1e1e1c;--ink:#ecece6;--mut:#9a9a92;--line:#33332f;--acc:#4cc2a5;--acc-ink:#0e1f1a;--danger:#f2776f}}
+:root{--bg:#f4f3ee;--card:#fff;--ink:#1c1c1a;--mut:#6f6f69;--line:#e6e4dc;--acc:#1f6f5c;--acc-ink:#fff;--acc-soft:#e3f1ec;--danger:#b3261e;--shadow:0 1px 2px rgba(0,0,0,.04),0 4px 16px rgba(0,0,0,.04)}
+@media(prefers-color-scheme:dark){:root{--bg:#121211;--card:#1c1c1a;--ink:#ecece6;--mut:#9a9a92;--line:#2f2f2b;--acc:#4cc2a5;--acc-ink:#0e1f1a;--acc-soft:#1b2e28;--danger:#f2776f;--shadow:none}}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 Georgia,"Times New Roman",serif}
-.wrap{max-width:720px;margin:0 auto;padding:0 16px}
-header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
-.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 0}
-h1{font-size:22px;margin:0;letter-spacing:-.01em}
-h2{font-size:21px;margin:0 0 4px;line-height:1.3}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:680px;margin:0 auto;padding:0 16px}
+header{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px 16px;flex-wrap:wrap;padding:12px 0}
+h1{display:flex;align-items:center;gap:10px;font:700 20px Georgia,serif;margin:0}
+.logo{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--acc);color:var(--acc-ink);font:700 16px Georgia,serif}
+#auth{display:flex;align-items:center;gap:8px;font-size:14px;flex-wrap:wrap}
+#auth label{color:var(--mut)}
+#auth input{width:70px;padding:6px 10px}
+.who{display:flex;align-items:center;gap:8px}
+.av{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;color:#fff;font:600 13px system-ui;flex:none}
+h2{font:700 22px/1.3 Georgia,serif;margin:12px 0 6px}
+h3{margin:0;font:600 15px system-ui}
 button,input,textarea{font:inherit;color:inherit}
-button{cursor:pointer;border:1px solid var(--acc);background:var(--acc);color:var(--acc-ink);padding:6px 14px;border-radius:8px}
-button.ghost,.bar button,.chip{background:transparent;color:var(--ink);border-color:var(--line)}
-button.ghost:hover,.bar button:hover,.chip:hover{border-color:var(--acc)}
-.bar button.on{color:var(--acc);border-color:var(--acc)}
+button{cursor:pointer;border:1px solid var(--acc);background:var(--acc);color:var(--acc-ink);padding:7px 16px;border-radius:999px;font-weight:600;font-size:14px;transition:.15s}
+button:hover{filter:brightness(1.08)}
+button.ghost,.bar button,.chip{background:transparent;color:var(--ink);border-color:var(--line);font-weight:500}
+button.ghost:hover,.bar button:hover,.chip:hover{border-color:var(--acc);background:var(--acc-soft);filter:none}
+.bar button.on{color:var(--acc);border-color:var(--acc);background:var(--acc-soft)}
 .bar .danger{color:var(--danger);margin-left:auto}
-.chip{padding:0 10px;font-size:13px;border-radius:999px}
-input,textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card)}
-textarea{min-height:90px;resize:vertical}
+.bar .danger:hover{border-color:var(--danger);background:transparent}
+.chip{padding:2px 12px;font-size:13px;margin-left:auto}
+input,textarea{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+textarea{min-height:100px;resize:vertical;font-family:Georgia,serif}
 input:focus,textarea:focus{outline:2px solid var(--acc);outline-offset:-1px}
 .row{display:flex;gap:8px;align-items:center}
-small,.meta span{color:var(--mut)}
-.box,.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin:16px 0}
-.box{display:grid;gap:8px}
-.meta{font:14px/1.4 system-ui,sans-serif;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-.body{white-space:pre-wrap;margin:12px 0}
-.bar{display:flex;gap:8px;font:14px system-ui,sans-serif}
-.bar button{padding:4px 12px}
-.cm{margin-top:12px;border-top:1px solid var(--line);padding-top:12px;font:15px/1.5 system-ui,sans-serif}
-.cm .c{display:flex;gap:8px;margin-bottom:6px}
+.box,.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin:16px 0;box-shadow:var(--shadow)}
+.card{transition:border-color .15s}
+.card:hover{border-color:color-mix(in srgb,var(--acc) 35%,var(--line))}
+.box{display:grid;gap:10px}
+.meta{display:flex;align-items:center;gap:10px}
+.who2{display:flex;flex-direction:column;line-height:1.25;font-size:14px}
+.who2 span{color:var(--mut);font-size:13px}
+.body{white-space:pre-wrap;margin:0 0 14px;font:17px/1.7 Georgia,serif;overflow-wrap:anywhere}
+.bar{display:flex;gap:8px;flex-wrap:wrap}
+.bar button{padding:5px 14px}
+.cm{margin-top:14px;border-top:1px solid var(--line);padding-top:12px;font-size:15px}
+.cm .c{display:flex;gap:8px;margin-bottom:8px}
 .cm .c b{white-space:nowrap}
-.empty{color:var(--mut);text-align:center;margin:20px 0;font:15px system-ui,sans-serif}
-dialog{border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);width:min(420px,92vw);padding:20px}
+.cm .cf{margin-top:10px}
+.empty{color:var(--mut);text-align:center;margin:28px 0}
+dialog{border:1px solid var(--line);border-radius:16px;background:var(--card);color:var(--ink);width:min(420px,92vw);padding:22px}
 dialog::backdrop{background:rgba(0,0,0,.45)}
-dialog form{display:grid;gap:8px}
-footer{padding:24px 0 48px;font:13px system-ui,sans-serif;color:var(--mut)}
-#toast{position:fixed;left:50%;bottom:20px;transform:translate(-50%,20px);opacity:0;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font:14px system-ui,sans-serif;transition:.2s;pointer-events:none;max-width:90vw}
+dialog form{display:grid;gap:10px}
+footer{padding:16px 0 56px;font-size:13px;color:var(--mut)}
+footer summary{cursor:pointer;width:max-content}
+footer form{margin-top:10px}
+#toast{position:fixed;left:50%;bottom:20px;transform:translate(-50%,20px);opacity:0;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;transition:.2s;pointer-events:none;max-width:90vw}
 #toast.show{opacity:1;transform:translate(-50%,0)}
 #toast.bad{background:var(--danger);color:#fff}
 </style>
 </head>
 <body>
 <header><div class="wrap top">
-  <h1>Blog App</h1>
+  <h1><span class="logo">B</span>Blog App</h1>
   <div id="auth" class="row"></div>
 </div></header>
 
 <main class="wrap">
   <form id="compose" class="box" hidden>
+    <h3>Write a new post</h3>
     <input name="title" placeholder="Post title" required>
     <textarea name="content" placeholder="Write something worth reading…" required></textarea>
     <div><button>Publish</button></div>
   </form>
   <section id="feed"><p class="empty">Loading…</p></section>
-  <footer>
+  <footer><details><summary>Settings</summary>
     <form id="cfg" class="row"><label for="api">API address</label><input id="api" name="api" required><button class="ghost">Save</button></form>
-  </footer>
+  </details></footer>
 </main>
 
 <dialog id="dlg">
@@ -114,7 +130,7 @@ async function user(id) {
 }
 
 function renderAuth() {
-  $('#auth').innerHTML = `<label for="acting">Posting as user ID</label><input id="acting" type="number" min="1" value="${actingId}" style="width:80px"><b id="who"></b><button id="su" class="ghost">+ New user</button>`;
+  $('#auth').innerHTML = `<span class="who"><span class="av" id="avm"></span><b id="who"></b></span><label for="acting">User ID</label><input id="acting" type="number" min="1" value="${actingId}"><button id="su" class="ghost">+ New user</button>`;
   $('#compose').hidden = !me;
 }
 
@@ -122,17 +138,21 @@ let actingId = +S.get('acting') || 1;
 async function pickUser(id) {
   actingId = id; S.set('acting', id);
   try { me = await api('/user?user_id=' + id); users[id] = me; } catch (e) { me = null; }
-  $('#who').textContent = me ? me.name : '(no such user)';
+  $('#who').textContent = me ? me.name : 'No such user';
+  $('#avm').textContent = me ? ini(me.name) : '?'; $('#avm').style.background = hue(id);
   $('#compose').hidden = !me;
   load();
 }
 
+const ini = n => (n || '?').trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+const hue = id => `hsl(${(id * 47) % 360} 45% 40%)`;
 const card = b => {
   const u = users[b.author_id] || {}, mine = me && me.id === b.author_id;
   return `<article class="card" data-id="${b.id}" data-author="${b.author_id}">
-    <h2>${esc(b.title)}</h2>
-    <div class="meta">by <b>${esc(u.name)}</b> <span>@${esc(u.username)}</span>
+    <div class="meta"><span class="av" style="background:${hue(b.author_id)}">${esc(ini(u.name))}</span>
+      <div class="who2"><b>${esc(u.name)}</b><span>@${esc(u.username)}</span></div>
       ${me && !mine ? `<button class="chip" data-a="follow">${following.has(b.author_id) ? 'Following' : 'Follow'}</button>` : ''}</div>
+    <h2>${esc(b.title)}</h2>
     <p class="body">${esc(b.content)}</p>
     <div class="bar">
       <button data-a="like" class="${liked.has(b.id) ? 'on' : ''}">♥ ${b.likes_count}</button>
