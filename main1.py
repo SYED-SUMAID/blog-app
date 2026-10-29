@@ -1,6 +1,8 @@
 import sqlite3
 from typing import Optional, List
 from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from sqlmodel import SQLModel, Field, Session, create_engine, select, func
 
 # ==============================================================================
@@ -108,8 +110,13 @@ class BlogDetailResponse(SQLModel):
 # ==============================================================================
 
 app = FastAPI(title="Blog Backend - Iteration 2")
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 
+@app.get("/", include_in_schema=False)
+   
+def home():
+    return FileResponse("index.html")
 # ------------------------------ USER ROUTES ----------------------------------
 
 @app.post("/user", response_model=UserGet, status_code=status.HTTP_201_CREATED)

@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Blog App</title>
+<style>
+:root{--bg:#f6f5f1;--card:#fff;--ink:#1d1d1b;--mut:#6b6b66;--line:#e4e2da;--acc:#1f6f5c;--acc-ink:#fff;--danger:#b3261e}
+@media(prefers-color-scheme:dark){:root{--bg:#141413;--card:#1e1e1c;--ink:#ecece6;--mut:#9a9a92;--line:#33332f;--acc:#4cc2a5;--acc-ink:#0e1f1a;--danger:#f2776f}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 Georgia,"Times New Roman",serif}
+.wrap{max-width:720px;margin:0 auto;padding:0 16px}
+header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 0}
+h1{font-size:22px;margin:0;letter-spacing:-.01em}
+h2{font-size:21px;margin:0 0 4px;line-height:1.3}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:1px solid var(--acc);background:var(--acc);color:var(--acc-ink);padding:6px 14px;border-radius:8px}
+button.ghost,.bar button,.chip{background:transparent;color:var(--ink);border-color:var(--line)}
+button.ghost:hover,.bar button:hover,.chip:hover{border-color:var(--acc)}
+.bar button.on{color:var(--acc);border-color:var(--acc)}
+.bar .danger{color:var(--danger);margin-left:auto}
+.chip{padding:0 10px;font-size:13px;border-radius:999px}
+input,textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+textarea{min-height:90px;resize:vertical}
+input:focus,textarea:focus{outline:2px solid var(--acc);outline-offset:-1px}
+.row{display:flex;gap:8px;align-items:center}
+small,.meta span{color:var(--mut)}
+.box,.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin:16px 0}
+.box{display:grid;gap:8px}
+.meta{font:14px/1.4 system-ui,sans-serif;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.body{white-space:pre-wrap;margin:12px 0}
+.bar{display:flex;gap:8px;font:14px system-ui,sans-serif}
+.bar button{padding:4px 12px}
+.cm{margin-top:12px;border-top:1px solid var(--line);padding-top:12px;font:15px/1.5 system-ui,sans-serif}
+.cm .c{display:flex;gap:8px;margin-bottom:6px}
+.cm .c b{white-space:nowrap}
+.empty{color:var(--mut);text-align:center;margin:20px 0;font:15px system-ui,sans-serif}
+dialog{border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);width:min(420px,92vw);padding:20px}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+dialog form{display:grid;gap:8px}
+footer{padding:24px 0 48px;font:13px system-ui,sans-serif;color:var(--mut)}
+#toast{position:fixed;left:50%;bottom:20px;transform:translate(-50%,20px);opacity:0;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font:14px system-ui,sans-serif;transition:.2s;pointer-events:none;max-width:90vw}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+#toast.bad{background:var(--danger);color:#fff}
+</style>
+</head>
+<body>
+<header><div class="wrap top">
+  <h1>Blog App</h1>
+  <div id="auth" class="row"></div>
+</div></header>
+
+<main class="wrap">
+  <form id="compose" class="box" hidden>
+    <input name="title" placeholder="Post title" required>
+    <textarea name="content" placeholder="Write something worth reading…" required></textarea>
+    <div><button>Publish</button></div>
+  </form>
+  <section id="feed"><p class="empty">Loading…</p></section>
+  <footer>
+    <form id="cfg" class="row"><label for="api">API address</label><input id="api" name="api" required><button class="ghost">Save</button></form>
+  </footer>
+</main>
+
+<dialog id="dlg">
+  <form id="suf">
+    <h2>Create account</h2>
+    <input name="name" placeholder="Full name" required>
+    <input name="username" placeholder="Username" required>
+    <input name="email" type="email" placeholder="Email" required>
+    <input name="password" type="password" placeholder="Password" required>
+    <input name="bio" placeholder="Short bio (optional)">
+    <div class="row"><button>Sign up</button><button type="button" id="cancel" class="ghost">Cancel</button></div>
+  </form>
+</dialog>
+<div id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const S = {
+  get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} }
+};
+let base = S.get('api') || (location.port === '8000' ? location.origin : 'http://127.0.0.1:8000'), me = null;
+const users = {}, liked = new Set(), following = new Set();
+
+function toast(m, bad) {
+  const t = $('#toast');
+  t.textContent = m; t.className = 'show' + (bad ? ' bad' : '');
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.className = '', 3200);
+}
+
+async function api(p, o = {}) {
+  let r;
+  try { r = await fetch(base + p, { headers: { 'Content-Type': 'application/json' }, ...o }); }
+  catch (e) { throw new Error('Cannot reach ' + base + '. Is the server running, with CORS enabled?'); }
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) {
+    const m = Array.isArray(d.detail) ? d.detail.map(x => x.loc.slice(-1) + ': ' + x.msg).join(', ') : d.detail;
+    throw new Error(m || 'Request failed (' + r.status + ')');
+  }
+  return d;
+}
+const post = (p, b) => api(p, { method: 'POST', body: b ? JSON.stringify(b) : undefined });
+
+async function user(id) {
+  if (!users[id]) {
+    try { users[id] = await api('/user?user_id=' + id); }
+    catch (e) { users[id] = { id, name: 'Unknown', username: 'unknown' }; }
+  }
+  return users[id];
+}
+
+function renderAuth() {
+  $('#auth').innerHTML = `<label for="acting">Posting as user ID</label><input id="acting" type="number" min="1" value="${actingId}" style="width:80px"><b id="who"></b><button id="su" class="ghost">+ New user</button>`;
+  $('#compose').hidden = !me;
+}
+
+let actingId = +S.get('acting') || 1;
+async function pickUser(id) {
+  actingId = id; S.set('acting', id);
+  try { me = await api('/user?user_id=' + id); users[id] = me; } catch (e) { me = null; }
+  $('#who').textContent = me ? me.name : '(no such user)';
+  $('#compose').hidden = !me;
+  load();
+}
+
+const card = b => {
+  const u = users[b.author_id] || {}, mine = me && me.id === b.author_id;
+  return `<article class="card" data-id="${b.id}" data-author="${b.author_id}">
+    <h2>${esc(b.title)}</h2>
+    <div class="meta">by <b>${esc(u.name)}</b> <span>@${esc(u.username)}</span>
+      ${me && !mine ? `<button class="chip" data-a="follow">${following.has(b.author_id) ? 'Following' : 'Follow'}</button>` : ''}</div>
+    <p class="body">${esc(b.content)}</p>
+    <div class="bar">
+      <button data-a="like" class="${liked.has(b.id) ? 'on' : ''}">♥ ${b.likes_count}</button>
+      <button data-a="cm">Comments ${b.comments_count}</button>
+      ${mine ? '<button data-a="del" class="danger">Delete</button>' : ''}
+    </div>
+    <div class="cm" hidden></div>
+  </article>`;
+};
+
+async function load() {
+  const f = $('#feed');
+  try {
+    const blogs = await api('/blogs');
+    await Promise.all([...new Set(blogs.map(b => b.author_id))].map(user));
+    f.innerHTML = blogs.length ? blogs.slice().reverse().map(card).join('') : '<p class="empty">No posts yet. Be the first to write one.</p>';
+  } catch (e) { f.innerHTML = `<p class="empty">${esc(e.message)}</p>`; }
+}
+
+async function refresh(c) {
+  const id = +c.dataset.id, d = await api('/blog?blog_id=' + id);
+  const l = c.querySelector('[data-a=like]');
+  l.textContent = '♥ ' + d.likes_count; l.classList.toggle('on', liked.has(id));
+  c.querySelector('[data-a=cm]').textContent = 'Comments ' + d.comments_count;
+}
+
+async function comments(c) {
+  const list = await api(`/blog/${c.dataset.id}/comments`);
+  await Promise.all([...new Set(list.map(x => x.commenter_id))].map(user));
+  c.querySelector('.cm').innerHTML =
+    (list.length ? list.map(x => `<div class="c"><b>${esc(users[x.commenter_id].name)}</b><span>${esc(x.text)}</span></div>`).join('') : '<p class="empty">No comments yet.</p>') +
+    (me ? '<form class="row cf"><input name="text" placeholder="Write a comment" required><button>Post</button></form>' : '<p class="empty">Enter a valid user ID at the top to comment.</p>');
+}
+
+document.addEventListener('click', async e => {
+  const b = e.target.closest('button'); if (!b) return;
+  
+  if (b.id === 'su') return $('#dlg').showModal();
+  if (b.id === 'cancel') return $('#dlg').close();
+  const a = b.dataset.a, c = b.closest('.card'); if (!a || !c) return;
+  const id = +c.dataset.id, aid = +c.dataset.author;
+  try {
+    if (a === 'like') {
+      if (!me) return toast('Enter a valid user ID at the top first', 1);
+      const r = await post(`/blog/${id}/like?user_id=${me.id}`);
+      r.liked ? liked.add(id) : liked.delete(id);
+      await refresh(c);
+    } else if (a === 'follow') {
+      const r = await post(`/user/${aid}/follow?current_user_id=${me.id}`);
+      r.following ? following.add(aid) : following.delete(aid);
+      document.querySelectorAll(`.card[data-author="${aid}"] [data-a=follow]`).forEach(x => x.textContent = r.following ? 'Following' : 'Follow');
+    } else if (a === 'cm') {
+      const p = c.querySelector('.cm'); p.hidden = !p.hidden;
+      if (!p.hidden) await comments(c);
+    } else if (a === 'del') {
+      if (!confirm('Delete this post?')) return;
+      await api('/blog?blog_id=' + id, { method: 'DELETE' });
+      c.remove(); toast('Post deleted');
+    }
+  } catch (err) { toast(err.message, 1); }
+});
+
+document.addEventListener('submit', async e => {
+  e.preventDefault();
+  const f = e.target, d = Object.fromEntries(new FormData(f));
+  try {
+    if (f.id === 'suf') {
+      const u = await post('/user', { name: d.name, username: d.username, email: d.email, password: d.password, bio: d.bio || null });
+      $('#dlg').close(); f.reset(); $('#acting').value = u.id; await pickUser(u.id); toast('User created. Now posting as ' + u.name + ' (ID ' + u.id + ')');
+    } else if (f.id === 'compose') {
+      await post('/blog', { title: d.title, content: d.content, author_id: me.id });
+      f.reset(); toast('Published'); load();
+    } else if (f.classList.contains('cf')) {
+      const c = f.closest('.card');
+      await post(`/blog/${c.dataset.id}/comment`, { text: d.text, commenter_id: me.id });
+      await comments(c); refresh(c);
+    } else if (f.id === 'cfg') {
+      base = d.api.trim().replace(/\/$/, ''); S.set('api', base); toast('Saved'); load();
+    }
+  } catch (err) { toast(err.message, 1); }
+});
+
+document.addEventListener('change', e => { if (e.target.id === 'acting' && +e.target.value > 0) pickUser(+e.target.value); });
+
+(async () => {
+  $('#api').value = base;
+  renderAuth(); await pickUser(actingId);
+})();
+</script>
+</body>
+</html>
