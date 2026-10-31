@@ -5,89 +5,115 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Blog App</title>
 <style>
-:root{--bg:#f4f3ee;--card:#fff;--ink:#1c1c1a;--mut:#6f6f69;--line:#e6e4dc;--acc:#1f6f5c;--acc-ink:#fff;--acc-soft:#e3f1ec;--danger:#b3261e;--shadow:0 1px 2px rgba(0,0,0,.04),0 4px 16px rgba(0,0,0,.04)}
-@media(prefers-color-scheme:dark){:root{--bg:#121211;--card:#1c1c1a;--ink:#ecece6;--mut:#9a9a92;--line:#2f2f2b;--acc:#4cc2a5;--acc-ink:#0e1f1a;--acc-soft:#1b2e28;--danger:#f2776f;--shadow:none}}
+:root{--bg:#f7f6f2;--card:#fff;--ink:#1d1d1b;--mut:#74746d;--line:#e8e6de;--acc:#1f6f5c;--acc-ink:#fff;--acc-soft:#e6f2ed;--danger:#b3261e}
+@media(prefers-color-scheme:dark){:root{--bg:#111110;--card:#1b1b19;--ink:#ecece6;--mut:#9a9a92;--line:#2c2c28;--acc:#4cc2a5;--acc-ink:#0e1f1a;--acc-soft:#1a2c26;--danger:#f2776f}}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
-.wrap{max-width:680px;margin:0 auto;padding:0 16px}
-header{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-.top{display:flex;justify-content:space-between;align-items:center;gap:10px 16px;flex-wrap:wrap;padding:12px 0}
-h1{display:flex;align-items:center;gap:10px;font:700 20px Georgia,serif;margin:0}
-.logo{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--acc);color:var(--acc-ink);font:700 16px Georgia,serif}
-#auth{display:flex;align-items:center;gap:8px;font-size:14px;flex-wrap:wrap}
-#auth label{color:var(--mut)}
-#auth input{width:70px;padding:6px 10px}
-.who{display:flex;align-items:center;gap:8px}
-.av{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;color:#fff;font:600 13px system-ui;flex:none}
-h2{font:700 22px/1.3 Georgia,serif;margin:12px 0 6px}
-h3{margin:0;font:600 15px system-ui}
-button,input,textarea{font:inherit;color:inherit}
-button{cursor:pointer;border:1px solid var(--acc);background:var(--acc);color:var(--acc-ink);padding:7px 16px;border-radius:999px;font-weight:600;font-size:14px;transition:.15s}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+header{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 85%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top{max-width:980px;margin:0 auto;padding:12px 16px}
+h1{display:flex;align-items:center;gap:10px;margin:0;font:700 20px Georgia,serif;letter-spacing:-.01em}
+.logo{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--acc);color:var(--acc-ink)}
+.layout{max-width:980px;margin:0 auto;padding:20px 16px 60px;display:grid;gap:20px;grid-template-columns:minmax(0,1fr)}
+.side{order:-1}
+@media(min-width:860px){.layout{grid-template-columns:minmax(0,1fr) 270px}.side{order:2;position:sticky;top:76px;align-self:start}}
+.box{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px}
+.card,.composer,.note{margin-bottom:16px}
+.card{transition:border-color .15s,transform .15s}
+.card:hover{border-color:color-mix(in srgb,var(--acc) 40%,var(--line))}
+button{font:inherit;cursor:pointer;border:1px solid var(--acc);background:var(--acc);color:var(--acc-ink);padding:8px 18px;border-radius:999px;font-weight:600;font-size:14px;transition:.15s}
 button:hover{filter:brightness(1.08)}
-button.ghost,.bar button,.chip{background:transparent;color:var(--ink);border-color:var(--line);font-weight:500}
-button.ghost:hover,.bar button:hover,.chip:hover{border-color:var(--acc);background:var(--acc-soft);filter:none}
-.bar button.on{color:var(--acc);border-color:var(--acc);background:var(--acc-soft)}
-.bar .danger{color:var(--danger);margin-left:auto}
-.bar .danger:hover{border-color:var(--danger);background:transparent}
-.chip{padding:2px 12px;font-size:13px;margin-left:auto}
-input,textarea{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card)}
-textarea{min-height:100px;resize:vertical;font-family:Georgia,serif}
+.ghost,.act,.chip{background:transparent;color:var(--ink);border-color:var(--line);font-weight:500}
+.ghost:hover,.act:hover,.chip:hover{border-color:var(--acc);background:var(--acc-soft);filter:none}
+input,textarea{font:inherit;color:inherit}
+dialog input,.side input,.cf input{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card)}
 input:focus,textarea:focus{outline:2px solid var(--acc);outline-offset:-1px}
-.row{display:flex;gap:8px;align-items:center}
-.box,.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin:16px 0;box-shadow:var(--shadow)}
-.card{transition:border-color .15s}
-.card:hover{border-color:color-mix(in srgb,var(--acc) 35%,var(--line))}
-.box{display:grid;gap:10px}
-.meta{display:flex;align-items:center;gap:10px}
-.who2{display:flex;flex-direction:column;line-height:1.25;font-size:14px}
-.who2 span{color:var(--mut);font-size:13px}
-.body{white-space:pre-wrap;margin:0 0 14px;font:17px/1.7 Georgia,serif;overflow-wrap:anywhere}
-.bar{display:flex;gap:8px;flex-wrap:wrap}
-.bar button{padding:5px 14px}
-.cm{margin-top:14px;border-top:1px solid var(--line);padding-top:12px;font-size:15px}
-.cm .c{display:flex;gap:8px;margin-bottom:8px}
-.cm .c b{white-space:nowrap}
-.cm .cf{margin-top:10px}
-.empty{color:var(--mut);text-align:center;margin:28px 0}
-dialog{border:1px solid var(--line);border-radius:16px;background:var(--card);color:var(--ink);width:min(420px,92vw);padding:22px}
+.composer{display:grid;gap:10px}
+.composer input{border:0;background:transparent;padding:4px 0;outline:0!important;font:700 19px Georgia,serif;width:100%}
+.composer textarea,.composer .acts{display:none}
+.composer:focus-within textarea,.composer:focus-within .acts,.composer:has(input:not(:placeholder-shown)) textarea,.composer:has(input:not(:placeholder-shown)) .acts{display:block}
+.composer textarea{border:0;border-top:1px solid var(--line);background:transparent;min-height:120px;resize:vertical;padding:12px 0 0;outline:0!important;font:17px/1.7 Georgia,serif}
+.acts{text-align:right}
+.note,.hint,.empty{color:var(--mut)}
+.hint{font-size:14px;margin:0}
+.empty{text-align:center;padding:40px 0}.empty div{font-size:40px}
+.av{display:inline-grid;place-items:center;width:40px;height:40px;border-radius:50%;color:#fff;font:600 14px system-ui;flex:none}
+.av.lg{width:68px;height:68px;font-size:24px}
+.meta{display:flex;align-items:center;gap:12px}
+.who2{display:flex;flex-direction:column;line-height:1.3;font-size:15px}
+.who2 span,.profile small{color:var(--mut);font-size:13px}
+.chip{margin-left:auto;padding:3px 14px;font-size:13px}
+h2{font:700 24px/1.3 Georgia,serif;margin:16px 0 8px;letter-spacing:-.01em}
+.body{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font:17px/1.75 Georgia,serif;display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden}
+.body.open{display:block}
+.more{background:none;border:0;color:var(--acc);padding:6px 0 0}
+.bar{display:flex;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.act{display:flex;align-items:center;gap:6px;padding:5px 14px}
+.act.on{color:var(--acc);border-color:var(--acc);background:var(--acc-soft)}
+.act.on svg{fill:currentColor}
+.act.del{margin-left:auto;color:var(--danger)}
+.act.del:hover{border-color:var(--danger);background:transparent}
+.cm{margin-top:14px;display:grid;gap:10px}
+.c{display:flex;gap:10px;align-items:flex-start}
+.c .av{width:30px;height:30px;font-size:11px}
+.c div{background:var(--bg);border-radius:14px;padding:6px 14px;font-size:15px;line-height:1.45}
+.c b{display:block;font-size:13px}
+.cf{display:flex;gap:8px}
+.profile{display:grid;justify-items:center;text-align:center;gap:2px}
+.profile b{font-size:18px;margin-top:8px}
+.profile p{margin:6px 0 0;color:var(--mut);font-size:14px}
+.idrow{display:flex;align-items:center;gap:8px;margin:16px 0 12px;font-size:14px;color:var(--mut)}
+.idrow input{width:72px}
+.set{margin-top:14px;font-size:13px;color:var(--mut)}
+.set summary{cursor:pointer}.set form{display:grid;gap:8px;margin-top:10px}
+dialog{border:1px solid var(--line);border-radius:18px;background:var(--card);color:var(--ink);width:min(420px,92vw);padding:24px}
 dialog::backdrop{background:rgba(0,0,0,.45)}
 dialog form{display:grid;gap:10px}
-footer{padding:16px 0 56px;font-size:13px;color:var(--mut)}
-footer summary{cursor:pointer;width:max-content}
-footer form{margin-top:10px}
-#toast{position:fixed;left:50%;bottom:20px;transform:translate(-50%,20px);opacity:0;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;transition:.2s;pointer-events:none;max-width:90vw}
+dialog h2{margin:0 0 4px;font-size:22px}
+.row{display:flex;gap:8px}
+.sk i{display:block;height:14px;border-radius:7px;margin:14px 0;background:linear-gradient(90deg,var(--line),var(--acc-soft),var(--line));background-size:200% 100%;animation:sh 1.2s linear infinite}
+.sk i:first-child{width:40%}.sk i:last-child{width:70%}
+@keyframes sh{to{background-position:-200% 0}}
+#toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);opacity:0;background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:12px;font-size:14px;transition:.2s;pointer-events:none;max-width:90vw}
 #toast.show{opacity:1;transform:translate(-50%,0)}
 #toast.bad{background:var(--danger);color:#fff}
 </style>
 </head>
 <body>
-<header><div class="wrap top">
-  <h1><span class="logo">B</span>Blog App</h1>
-  <div id="auth" class="row"></div>
-</div></header>
+<header><div class="top"><h1><span class="logo">B</span>Blog App</h1></div></header>
 
-<main class="wrap">
-  <form id="compose" class="box" hidden>
-    <h3>Write a new post</h3>
-    <input name="title" placeholder="Post title" required>
-    <textarea name="content" placeholder="Write something worth reading…" required></textarea>
-    <div><button>Publish</button></div>
-  </form>
-  <section id="feed"><p class="empty">Loading…</p></section>
-  <footer><details><summary>Settings</summary>
-    <form id="cfg" class="row"><label for="api">API address</label><input id="api" name="api" required><button class="ghost">Save</button></form>
-  </details></footer>
-</main>
+<div class="layout">
+  <main>
+    <form id="compose" class="box composer" hidden>
+      <input name="title" placeholder="What’s on your mind?" autocomplete="off" required>
+      <textarea name="content" placeholder="Write the story…" required></textarea>
+      <div class="acts"><button>Publish</button></div>
+    </form>
+    <div id="nouser" class="box note" hidden>No user with this ID yet. Click <b>+ New user</b> to create one.</div>
+    <section id="feed"></section>
+  </main>
+
+  <aside class="side">
+    <div class="box profile">
+      <span class="av lg" id="avm"></span>
+      <b id="who"></b><small id="handle"></small><p id="bio"></p>
+      <label class="idrow">Posting as user ID <input id="acting" type="number" min="1"></label>
+      <button id="su" class="ghost">+ New user</button>
+    </div>
+    <details class="set"><summary>Settings</summary>
+      <form id="cfg"><input id="api" name="api" aria-label="API address" required><button class="ghost">Save address</button></form>
+    </details>
+  </aside>
+</div>
 
 <dialog id="dlg">
   <form id="suf">
-    <h2>Create account</h2>
+    <h2>Create a user</h2>
     <input name="name" placeholder="Full name" required>
     <input name="username" placeholder="Username" required>
     <input name="email" type="email" placeholder="Email" required>
     <input name="password" type="password" placeholder="Password" required>
     <input name="bio" placeholder="Short bio (optional)">
-    <div class="row"><button>Sign up</button><button type="button" id="cancel" class="ghost">Cancel</button></div>
+    <div class="row"><button>Create</button><button type="button" id="cancel" class="ghost">Cancel</button></div>
   </form>
 </dialog>
 <div id="toast"></div>
@@ -99,8 +125,16 @@ const S = {
   get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } },
   set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} }
 };
-let base = S.get('api') || (location.port === '8000' ? location.origin : 'http://127.0.0.1:8000'), me = null;
+let base = S.get('api') || (location.port === '8000' ? location.origin : 'http://127.0.0.1:8000'), me = null, actingId = +S.get('acting') || 1;
 const users = {}, liked = new Set(), following = new Set();
+const svg = p => `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const ICON = {
+  heart: svg('<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/>'),
+  chat: svg('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>')
+};
+const ini = n => (n || '?').trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+const hue = id => `hsl(${(id * 47) % 360} 45% 40%)`;
+const SK = '<div class="box card sk"><i></i><i></i><i></i></div>'.repeat(2);
 
 function toast(m, bad) {
   const t = $('#toast');
@@ -111,7 +145,7 @@ function toast(m, bad) {
 async function api(p, o = {}) {
   let r;
   try { r = await fetch(base + p, { headers: { 'Content-Type': 'application/json' }, ...o }); }
-  catch (e) { throw new Error('Cannot reach ' + base + '. Is the server running, with CORS enabled?'); }
+  catch (e) { throw new Error('Cannot reach ' + base + '. Is the server running?'); }
   const d = await r.json().catch(() => ({}));
   if (!r.ok) {
     const m = Array.isArray(d.detail) ? d.detail.map(x => x.loc.slice(-1) + ': ' + x.msg).join(', ') : d.detail;
@@ -129,35 +163,29 @@ async function user(id) {
   return users[id];
 }
 
-function renderAuth() {
-  $('#auth').innerHTML = `<span class="who"><span class="av" id="avm"></span><b id="who"></b></span><label for="acting">User ID</label><input id="acting" type="number" min="1" value="${actingId}"><button id="su" class="ghost">+ New user</button>`;
-  $('#compose').hidden = !me;
-}
-
-let actingId = +S.get('acting') || 1;
 async function pickUser(id) {
-  actingId = id; S.set('acting', id);
+  actingId = id; S.set('acting', id); $('#acting').value = id;
   try { me = await api('/user?user_id=' + id); users[id] = me; } catch (e) { me = null; }
   $('#who').textContent = me ? me.name : 'No such user';
-  $('#avm').textContent = me ? ini(me.name) : '?'; $('#avm').style.background = hue(id);
-  $('#compose').hidden = !me;
+  $('#handle').textContent = me ? '@' + me.username : '';
+  $('#bio').textContent = (me && me.bio) || '';
+  const av = $('#avm'); av.textContent = me ? ini(me.name) : '?'; av.style.background = hue(id);
+  $('#compose').hidden = !me; $('#nouser').hidden = !!me;
   load();
 }
 
-const ini = n => (n || '?').trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
-const hue = id => `hsl(${(id * 47) % 360} 45% 40%)`;
 const card = b => {
   const u = users[b.author_id] || {}, mine = me && me.id === b.author_id;
-  return `<article class="card" data-id="${b.id}" data-author="${b.author_id}">
+  return `<article class="box card" data-id="${b.id}" data-author="${b.author_id}">
     <div class="meta"><span class="av" style="background:${hue(b.author_id)}">${esc(ini(u.name))}</span>
       <div class="who2"><b>${esc(u.name)}</b><span>@${esc(u.username)}</span></div>
       ${me && !mine ? `<button class="chip" data-a="follow">${following.has(b.author_id) ? 'Following' : 'Follow'}</button>` : ''}</div>
     <h2>${esc(b.title)}</h2>
-    <p class="body">${esc(b.content)}</p>
+    <p class="body">${esc(b.content)}</p><button class="more" data-a="more" hidden>Read more</button>
     <div class="bar">
-      <button data-a="like" class="${liked.has(b.id) ? 'on' : ''}">♥ ${b.likes_count}</button>
-      <button data-a="cm">Comments ${b.comments_count}</button>
-      ${mine ? '<button data-a="del" class="danger">Delete</button>' : ''}
+      <button class="act ${liked.has(b.id) ? 'on' : ''}" data-a="like">${ICON.heart}<span>${b.likes_count}</span></button>
+      <button class="act" data-a="cm">${ICON.chat}<span>${b.comments_count}</span></button>
+      ${mine ? '<button class="act del" data-a="del">Delete</button>' : ''}
     </div>
     <div class="cm" hidden></div>
   </article>`;
@@ -168,35 +196,37 @@ async function load() {
   try {
     const blogs = await api('/blogs');
     await Promise.all([...new Set(blogs.map(b => b.author_id))].map(user));
-    f.innerHTML = blogs.length ? blogs.slice().reverse().map(card).join('') : '<p class="empty">No posts yet. Be the first to write one.</p>';
-  } catch (e) { f.innerHTML = `<p class="empty">${esc(e.message)}</p>`; }
+    f.innerHTML = blogs.length ? blogs.slice().reverse().map(card).join('') : '<div class="empty"><div>✍️</div><b>No posts yet</b><p>Be the first to write something.</p></div>';
+    f.querySelectorAll('.body').forEach(p => { if (p.scrollHeight > p.clientHeight + 2) p.nextElementSibling.hidden = false; });
+  } catch (e) { f.innerHTML = `<div class="empty"><b>Could not load posts</b><p>${esc(e.message)}</p></div>`; }
 }
 
 async function refresh(c) {
-  const id = +c.dataset.id, d = await api('/blog?blog_id=' + id);
-  const l = c.querySelector('[data-a=like]');
-  l.textContent = '♥ ' + d.likes_count; l.classList.toggle('on', liked.has(id));
-  c.querySelector('[data-a=cm]').textContent = 'Comments ' + d.comments_count;
+  const id = +c.dataset.id, d = await api('/blog?blog_id=' + id), l = c.querySelector('[data-a=like]');
+  l.querySelector('span').textContent = d.likes_count; l.classList.toggle('on', liked.has(id));
+  c.querySelector('[data-a=cm] span').textContent = d.comments_count;
 }
 
 async function comments(c) {
   const list = await api(`/blog/${c.dataset.id}/comments`);
   await Promise.all([...new Set(list.map(x => x.commenter_id))].map(user));
   c.querySelector('.cm').innerHTML =
-    (list.length ? list.map(x => `<div class="c"><b>${esc(users[x.commenter_id].name)}</b><span>${esc(x.text)}</span></div>`).join('') : '<p class="empty">No comments yet.</p>') +
-    (me ? '<form class="row cf"><input name="text" placeholder="Write a comment" required><button>Post</button></form>' : '<p class="empty">Enter a valid user ID at the top to comment.</p>');
+    (list.length ? list.map(x => { const u = users[x.commenter_id]; return `<div class="c"><span class="av" style="background:${hue(x.commenter_id)}">${esc(ini(u.name))}</span><div><b>${esc(u.name)}</b>${esc(x.text)}</div></div>`; }).join('') : '<p class="hint">No comments yet. Start the conversation.</p>') +
+    (me ? '<form class="cf"><input name="text" placeholder="Write a comment…" required><button>Post</button></form>' : '<p class="hint">Enter a valid user ID to comment.</p>');
 }
 
 document.addEventListener('click', async e => {
   const b = e.target.closest('button'); if (!b) return;
-  
   if (b.id === 'su') return $('#dlg').showModal();
   if (b.id === 'cancel') return $('#dlg').close();
   const a = b.dataset.a, c = b.closest('.card'); if (!a || !c) return;
   const id = +c.dataset.id, aid = +c.dataset.author;
   try {
-    if (a === 'like') {
-      if (!me) return toast('Enter a valid user ID at the top first', 1);
+    if (a === 'more') {
+      const p = c.querySelector('.body'); p.classList.toggle('open');
+      b.textContent = p.classList.contains('open') ? 'Show less' : 'Read more';
+    } else if (a === 'like') {
+      if (!me) return toast('Enter a valid user ID first', 1);
       const r = await post(`/blog/${id}/like?user_id=${me.id}`);
       r.liked ? liked.add(id) : liked.delete(id);
       await refresh(c);
@@ -221,10 +251,10 @@ document.addEventListener('submit', async e => {
   try {
     if (f.id === 'suf') {
       const u = await post('/user', { name: d.name, username: d.username, email: d.email, password: d.password, bio: d.bio || null });
-      $('#dlg').close(); f.reset(); $('#acting').value = u.id; await pickUser(u.id); toast('User created. Now posting as ' + u.name + ' (ID ' + u.id + ')');
+      $('#dlg').close(); f.reset(); await pickUser(u.id); toast('User created. Now posting as ' + u.name + ' (ID ' + u.id + ')');
     } else if (f.id === 'compose') {
       await post('/blog', { title: d.title, content: d.content, author_id: me.id });
-      f.reset(); toast('Published'); load();
+      f.reset(); document.activeElement.blur(); toast('Published'); load();
     } else if (f.classList.contains('cf')) {
       const c = f.closest('.card');
       await post(`/blog/${c.dataset.id}/comment`, { text: d.text, commenter_id: me.id });
@@ -237,10 +267,7 @@ document.addEventListener('submit', async e => {
 
 document.addEventListener('change', e => { if (e.target.id === 'acting' && +e.target.value > 0) pickUser(+e.target.value); });
 
-(async () => {
-  $('#api').value = base;
-  renderAuth(); await pickUser(actingId);
-})();
+$('#feed').innerHTML = SK; $('#api').value = base; pickUser(actingId);
 </script>
 </body>
 </html>
