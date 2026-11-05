@@ -1,71 +1,34 @@
-services:
+FROM python:3.14-slim
 
-  # FastAPI Backend
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+# Set working directory
+WORKDIR /app
 
-    container_name: blog-backend
+# Prevent Python from generating .pyc files
+ENV PYTHONDONTWRITEBYTECODE=1
 
-    ports:
-      - "8000:8000"
+# Display Python logs immediately
+ENV PYTHONUNBUFFERED=1
 
-    env_file:
-      - .env
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
 
-    depends_on:
-      db:
-        condition: service_healthy
+# Copy requirements
+COPY requirements.txt .
 
-    volumes:
-      - ./backend:/app
+# Install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+# Copy application files
+COPY . .
 
-    restart: unless-stopped
+# Create directory for persistent SQLite database
+RUN mkdir -p /app/data
 
+# Expose FastAPI port
+EXPOSE 8000
 
-  # PostgreSQL Database
-  db:
-    image: postgres:17-alpine
-
-    container_name: blog-database
-
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-
-    ports:
-      - "5432:5432"
-
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-    restart: unless-stopped
-
-
-  # Frontend
-  frontend:
-    image: nginx:alpine
-
-    container_name: blog-frontend
-
-    ports:
-      - "5500:80"
-
-    volumes:
-      - ./frontend:/usr/share/nginx/html:ro
-
-    restart: unless-stopped
-
-
-volumes:
-  postgres_data:
+# Start FastAPI application
+CMD ["uvicorn", "mainwithauthentication:app", "--host", "0.0.0.0", "--port", "8000"]
