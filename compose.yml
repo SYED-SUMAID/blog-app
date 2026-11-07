@@ -23,6 +23,9 @@ services:
 
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
+    networks:
+      - blog-network
+
     restart: unless-stopped
 
 
@@ -49,6 +52,9 @@ services:
       timeout: 5s
       retries: 5
 
+    networks:
+      - blog-network
+
     restart: unless-stopped
 
 
@@ -64,8 +70,18 @@ services:
     volumes:
       - ./frontend:/usr/share/nginx/html:ro
 
+    networks:
+      - blog-network
+
     restart: unless-stopped
 
 
+# Persistent Storage
 volumes:
   postgres_data:
+
+
+# Custom Network
+networks:
+  blog-network:
+    driver: bridge
