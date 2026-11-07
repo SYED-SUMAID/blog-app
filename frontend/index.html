@@ -1,2260 +1,962 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Journal — Stories Worth Sharing</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
-
-    <style>
-        :root {
-            --teal: #146466;
-            --red: #c92f1c;
-            --jade: #5aaba9;
-            --paper: #e2e2c4;
-            --surface: #f0f0dc;
-            --text: #245452;
-            --muted: #718b82;
-            --border: rgba(20, 100, 102, .18);
-            --serif: 'Playfair Display', Georgia, serif;
-            --sans: 'DM Sans', sans-serif;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            background: var(--paper);
-            color: var(--teal);
-            font-family: var(--sans);
-            min-height: 100vh;
-        }
-
-        button, input, textarea {
-            font: inherit;
-        }
-
-        button {
-            cursor: pointer;
-        }
-
-        a {
-            color: inherit;
-            text-decoration: none;
-        }
-
-        .container {
-            width: min(1160px, 90%);
-            margin: auto;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        /* NAVIGATION */
-
-        nav {
-            height: 82px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--border);
-            position: relative;
-            z-index: 10;
-        }
-
-        .logo {
-            font-family: var(--serif);
-            font-size: 28px;
-            font-weight: 700;
-            letter-spacing: -1px;
-        }
-
-        .logo span {
-            color: var(--red);
-        }
-
-        .nav-links,
-        .nav-actions {
-            display: flex;
-            align-items: center;
-            gap: 28px;
-        }
-
-        .nav-links {
-            color: var(--muted);
-            font-size: 13px;
-        }
-
-        .nav-links a:hover {
-            color: var(--red);
-        }
-
-        .nav-actions {
-            gap: 10px;
-        }
-
-        .btn {
-            border: 1px solid transparent;
-            padding: 13px 20px;
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: .3px;
-            transition: .2s ease;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn-primary {
-            background: var(--red);
-            color: #fff8e9;
-        }
-
-        .btn-primary:hover {
-            background: #a92517;
-            transform: translateY(-2px);
-        }
-
-        .btn-outline {
-            border-color: var(--teal);
-            color: var(--teal);
-            background: transparent;
-        }
-
-        .btn-outline:hover {
-            background: var(--teal);
-            color: var(--paper);
-        }
-
-        .text-button {
-            border: 0;
-            background: transparent;
-            color: var(--teal);
-            font-size: 13px;
-            font-weight: 600;
-        }
-
-        .text-button:hover {
-            color: var(--red);
-        }
-
-        /* HOMEPAGE */
-
-        .hero {
-            min-height: 690px;
-            position: relative;
-            display: flex;
-            align-items: center;
-            overflow: hidden;
-            border-bottom: 1px solid var(--border);
-            background:
-                radial-gradient(ellipse at 85% 35%, rgba(90,171,169,.18), transparent 38%),
-                linear-gradient(110deg, var(--paper), #e8e8d0);
-        }
-
-        .hero::before {
-            content: "静";
-            position: absolute;
-            right: 8%;
-            top: 4%;
-            font-family: serif;
-            font-size: clamp(250px, 37vw, 470px);
-            line-height: 1;
-            color: rgba(20,100,102,.07);
-            pointer-events: none;
-        }
-
-        .hero::after {
-            content: "";
-            position: absolute;
-            right: 15%;
-            bottom: 13%;
-            width: 150px;
-            height: 150px;
-            border: 1px solid rgba(201,47,28,.45);
-            border-radius: 50%;
-            box-shadow:
-                0 0 0 18px rgba(201,47,28,.04),
-                0 0 0 38px rgba(201,47,28,.025);
-            pointer-events: none;
-        }
-
-        .hero-content {
-            position: relative;
-            z-index: 1;
-            max-width: 780px;
-            padding: 90px 0;
-        }
-
-        .eyebrow {
-            color: var(--red);
-            font-size: 10px;
-            letter-spacing: 4px;
-            text-transform: uppercase;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 28px;
-        }
-
-        .eyebrow::before {
-            content: "";
-            width: 32px;
-            height: 1px;
-            background: var(--red);
-        }
-
-        .hero h1 {
-            font-family: var(--serif);
-            font-size: clamp(58px, 8vw, 105px);
-            line-height: 1.04;
-            font-weight: 500;
-            letter-spacing: -4px;
-            max-width: 850px;
-        }
-
-        .hero h1 span {
-            color: var(--red);
-            font-style: italic;
-        }
-
-        .hero-description {
-            color: var(--muted);
-            max-width: 440px;
-            font-size: 14px;
-            line-height: 2;
-            margin: 28px 0 32px;
-        }
-
-        .hero-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 14px;
-        }
-
-        .hero-note {
-            margin-top: 65px;
-            padding-top: 18px;
-            border-top: 1px solid var(--border);
-            max-width: 420px;
-            color: var(--muted);
-            font-size: 10px;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-        }
-
-        /* HOMEPAGE FEATURE */
-
-        .home-feature {
-            padding: 100px 0;
-        }
-
-        .section-heading {
-            margin-bottom: 35px;
-        }
-
-        .section-heading small {
-            color: var(--red);
-            letter-spacing: 3px;
-            font-size: 10px;
-            text-transform: uppercase;
-        }
-
-        .section-heading h2 {
-            font-family: var(--serif);
-            font-size: clamp(32px, 5vw, 48px);
-            font-weight: 500;
-            margin-top: 12px;
-        }
-
-        .section-heading p {
-            color: var(--muted);
-            margin-top: 12px;
-            line-height: 1.8;
-            font-size: 14px;
-        }
-
-        .feature-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            padding: 45px;
-            display: grid;
-            grid-template-columns: 1.2fr .8fr;
-            gap: 45px;
-            align-items: center;
-        }
-
-        .feature-label {
-            color: var(--red);
-            font-size: 10px;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-        }
-
-        .feature-card h3 {
-            font-family: var(--serif);
-            font-size: clamp(30px, 4vw, 48px);
-            line-height: 1.2;
-            font-weight: 500;
-            margin: 20px 0;
-        }
-
-        .feature-card p {
-            color: var(--muted);
-            line-height: 2;
-            font-size: 14px;
-            max-width: 470px;
-        }
-
-        .feature-decoration {
-            min-height: 270px;
-            background: linear-gradient(145deg, var(--teal), #1d7778);
-            color: var(--paper);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: serif;
-            font-size: 120px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .feature-decoration::before,
-        .feature-decoration::after {
-            content: "";
-            position: absolute;
-            width: 190px;
-            height: 190px;
-            border: 1px solid rgba(226,226,196,.3);
-            border-radius: 50%;
-        }
-
-        .feature-decoration::after {
-            width: 140px;
-            height: 140px;
-        }
-
-        .closing-section {
-            background: var(--teal);
-            color: var(--paper);
-            padding: 90px 0;
-            text-align: center;
-        }
-
-        .closing-section h2 {
-            font-family: var(--serif);
-            font-size: clamp(35px, 5vw, 60px);
-            font-weight: 400;
-        }
-
-        .closing-section p {
-            color: rgba(226,226,196,.7);
-            margin: 18px 0 28px;
-            font-size: 14px;
-        }
-
-        /* BLOG PAGE */
-
-        #blogPage {
-            min-height: 75vh;
-            padding-bottom: 80px;
-        }
-
-        .blog-header {
-            padding: 65px 0 35px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .blog-header h1 {
-            font-family: var(--serif);
-            font-size: clamp(42px, 6vw, 65px);
-            font-weight: 500;
-        }
-
-        .blog-header p {
-            color: var(--muted);
-            margin-top: 12px;
-            font-size: 14px;
-        }
-
-        .blog-toolbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 15px;
-            margin: 30px 0;
-            flex-wrap: wrap;
-        }
-
-        .search-box {
-            width: min(380px, 100%);
-            padding: 14px 16px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            outline: none;
-            color: var(--teal);
-        }
-
-        .search-box:focus,
-        .field:focus {
-            border-color: var(--red);
-        }
-
-        .blog-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 20px;
-        }
-
-        .blog-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            padding: 28px;
-            transition: .25s ease;
-            display: flex;
-            flex-direction: column;
-            min-height: 260px;
-        }
-
-        .blog-card:hover {
-            transform: translateY(-4px);
-            border-color: var(--jade);
-            box-shadow: 0 15px 35px rgba(20,100,102,.08);
-        }
-
-        .blog-card .category {
-            color: var(--red);
-            font-size: 10px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-
-        .blog-card h2 {
-            font-family: var(--serif);
-            font-size: 27px;
-            font-weight: 500;
-            line-height: 1.3;
-            margin: 16px 0 12px;
-        }
-
-        .blog-card .excerpt {
-            color: var(--muted);
-            font-size: 13px;
-            line-height: 1.9;
-            margin-bottom: 24px;
-            white-space: pre-line;
-        }
-
-        .card-footer {
-            border-top: 1px solid var(--border);
-            padding-top: 16px;
-            margin-top: auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .author {
-            color: var(--muted);
-            font-size: 11px;
-        }
-
-        .card-actions {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-
-        .card-actions button {
-            background: transparent;
-            border: 0;
-            color: var(--teal);
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .card-actions button:hover {
-            color: var(--red);
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 70px 20px;
-            color: var(--muted);
-            grid-column: 1 / -1;
-        }
-
-        /* EDITOR */
-
-        .panel {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            padding: 30px;
-            margin: 35px 0;
-        }
-
-        .panel-heading {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-        }
-
-        .panel-heading h2 {
-            font-family: var(--serif);
-            font-size: 30px;
-            font-weight: 500;
-        }
-
-        .field-group {
-            margin-bottom: 18px;
-        }
-
-        .field-group label {
-            display: block;
-            color: var(--teal);
-            font-size: 12px;
-            font-weight: 700;
-            margin-bottom: 9px;
-        }
-
-        .field {
-            display: block;
-            width: 100%;
-            padding: 14px 15px;
-            background: var(--paper);
-            color: var(--teal);
-            border: 1px solid var(--border);
-            outline: none;
-            border-radius: 0;
-        }
-
-        textarea.field {
-            min-height: 220px;
-            resize: vertical;
-            line-height: 1.8;
-        }
-
-        .field::placeholder {
-            color: #91a49a;
-        }
-
-        .editor-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        #wordCount {
-            color: var(--muted);
-            font-size: 11px;
-        }
-
-        /* ARTICLE */
-
-        #articlePage {
-            padding: 65px 0 90px;
-        }
-
-        .article {
-            max-width: 780px;
-            margin: auto;
-        }
-
-        .back-button {
-            margin-bottom: 35px;
-        }
-
-        .article-category {
-            color: var(--red);
-            font-size: 10px;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-        }
-
-        .article h1 {
-            font-family: var(--serif);
-            font-size: clamp(40px, 6vw, 65px);
-            font-weight: 500;
-            line-height: 1.15;
-            margin: 20px 0;
-        }
-
-        .article-meta {
-            color: var(--muted);
-            font-size: 12px;
-            padding-bottom: 25px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .article-content {
-            color: var(--text);
-            font-size: 15px;
-            line-height: 2.1;
-            white-space: pre-wrap;
-            overflow-wrap: anywhere;
-            padding: 35px 0;
-        }
-
-        .article-actions {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            padding: 20px 0;
-            border-top: 1px solid var(--border);
-            border-bottom: 1px solid var(--border);
-        }
-
-        .comments {
-            margin-top: 45px;
-        }
-
-        .comments h2 {
-            font-family: var(--serif);
-            font-size: 32px;
-            font-weight: 500;
-            margin-bottom: 22px;
-        }
-
-        .comment-form {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-        }
-
-        .comment-form .field {
-            flex: 1;
-        }
-
-        .comment {
-            padding: 18px 0;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .comment strong {
-            color: var(--red);
-            font-size: 12px;
-        }
-
-        .comment p {
-            color: var(--muted);
-            font-size: 13px;
-            line-height: 1.8;
-            margin-top: 8px;
-            white-space: pre-wrap;
-        }
-
-        /* AUTH MODAL */
-
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 100;
-            background: rgba(15,48,47,.72);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .modal {
-            width: min(430px, 100%);
-            background: var(--paper);
-            border: 1px solid var(--border);
-            padding: 35px;
-            position: relative;
-            box-shadow: 0 25px 80px rgba(0,0,0,.2);
-        }
-
-        .modal-close {
-            position: absolute;
-            top: 15px;
-            right: 17px;
-            border: 0;
-            background: transparent;
-            color: var(--teal);
-            font-size: 24px;
-        }
-
-        .modal h2 {
-            font-family: var(--serif);
-            font-size: 35px;
-            font-weight: 500;
-            margin-bottom: 8px;
-        }
-
-        .modal > p {
-            color: var(--muted);
-            font-size: 13px;
-            margin-bottom: 25px;
-        }
-
-        .modal .btn {
-            width: 100%;
-            margin-top: 5px;
-        }
-
-        .modal-switch {
-            text-align: center;
-            color: var(--muted);
-            font-size: 12px;
-            margin-top: 22px;
-        }
-
-        .modal-switch button {
-            border: 0;
-            background: transparent;
-            color: var(--red);
-            font-weight: 700;
-            margin-left: 5px;
-        }
-
-        /* TOAST AND FOOTER */
-
-        .toast {
-            position: fixed;
-            bottom: 25px;
-            right: 25px;
-            z-index: 200;
-            background: var(--teal);
-            color: var(--paper);
-            padding: 15px 22px;
-            font-size: 13px;
-            display: none;
-            max-width: min(400px, calc(100% - 40px));
-            box-shadow: 0 8px 25px rgba(0,0,0,.15);
-        }
-
-        footer {
-            border-top: 1px solid var(--border);
-            padding: 30px 0;
-            color: var(--muted);
-            font-size: 11px;
-        }
-
-        .footer-inner {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 15px;
-        }
-
-        /* RESPONSIVE */
-
-        @media (max-width: 760px) {
-            nav {
-                height: auto;
-                min-height: 75px;
-                padding: 16px 0;
-                flex-wrap: wrap;
-                gap: 15px;
-            }
-
-            .nav-links {
-                order: 3;
-                width: 100%;
-                justify-content: center;
-                gap: 22px;
-            }
-
-            .nav-actions {
-                gap: 8px;
-            }
-
-            .nav-actions .btn {
-                padding: 10px 12px;
-            }
-
-            .hero {
-                min-height: 620px;
-            }
-
-            .hero h1 {
-                font-size: clamp(55px, 12vw, 75px);
-                letter-spacing: -2px;
-            }
-
-            .hero::before {
-                right: -15%;
-                top: 30%;
-                font-size: 270px;
-            }
-
-            .hero::after {
-                width: 90px;
-                height: 90px;
-                right: 8%;
-            }
-
-            .feature-card {
-                grid-template-columns: 1fr;
-                padding: 25px;
-                gap: 25px;
-            }
-
-            .feature-decoration {
-                min-height: 200px;
-            }
-
-            .blog-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .comment-form {
-                flex-direction: column;
-            }
-
-            .footer-inner {
-                flex-direction: column;
-                text-align: center;
-            }
-        }
-        /* INCREASED UI SIZE */
-
-.container {
-    width: min(1400px, 92%);
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Journal — Stories Worth Sharing</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+<style>
+:root{
+    --teal:#146466; --red:#c92f1c; --jade:#5aaba9; --paper:#e2e2c4; --surface:#f0f0dc;
+    --text:#245452; --muted:#718b82; --border:rgba(20,100,102,.18);
+    --serif:'Playfair Display',Georgia,serif; --sans:'DM Sans',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--paper);color:var(--teal);font-family:var(--sans);min-height:100vh}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+a{color:inherit;text-decoration:none}
+.container{width:min(1400px,92%);margin:auto}
+.hidden{display:none !important}
+
+/* NAVIGATION */
+nav{height:95px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);position:relative;z-index:10}
+.logo{font-family:var(--serif);font-size:34px;font-weight:700;letter-spacing:-1px}
+.logo span{color:var(--red)}
+.nav-links,.nav-actions{display:flex;align-items:center;gap:35px}
+.nav-links{color:var(--muted);font-size:15px}
+.nav-links a:hover{color:var(--red)}
+.nav-actions{gap:10px}
+#navActions .author{font-size:17px;font-weight:700;color:var(--teal)}
+.btn{border:1px solid transparent;padding:16px 25px;font-size:14px;font-weight:700;letter-spacing:.3px;transition:.2s ease;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.nav-actions .btn{font-size:15px;padding:17px 27px}
+.btn-primary{background:var(--red);color:#fff8e9}
+.btn-primary:hover{background:#a92517;transform:translateY(-2px)}
+.btn-outline{border-color:var(--teal);color:var(--teal);background:transparent}
+.btn-outline:hover{background:var(--teal);color:var(--paper)}
+.text-button{border:0;background:transparent;color:var(--teal);font-size:13px;font-weight:600}
+.text-button:hover{color:var(--red)}
+
+/* HERO */
+.hero{min-height:860px;position:relative;display:flex;align-items:center;overflow:hidden;border-bottom:1px solid var(--border);
+    background:radial-gradient(ellipse at 18% 45%,rgba(90,171,169,.10),transparent 55%),linear-gradient(110deg,var(--paper),#e8e8d0)}
+
+/* petal layer (no background image) */
+.hero-art{position:absolute;inset:0;overflow:hidden;z-index:0;pointer-events:none}
+
+/* floating blossom petals */
+.petal{position:absolute;top:-30px;left:var(--x);width:var(--s);height:calc(var(--s)*1.4);background:var(--red);border-radius:0 100% 0 100%;opacity:.75;animation:fall var(--d) linear infinite;animation-delay:var(--w)}
+@keyframes fall{
+    0%{transform:translate(0,0) rotate(0deg);opacity:0}
+    10%{opacity:.75}
+    50%{transform:translate(-50px,420px) rotate(180deg)}
+    90%{opacity:.6}
+    100%{transform:translate(20px,880px) rotate(380deg);opacity:0}
 }
 
-/* Navigation */
-nav {
-    height: 95px;
+.hero .container{position:relative;z-index:1}
+.hero-content{max-width:850px;padding:90px 0;animation:rise 1s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+.eyebrow{color:var(--red);font-size:10px;letter-spacing:4px;text-transform:uppercase;display:flex;align-items:center;gap:12px;margin-bottom:28px}
+.eyebrow::before{content:"";width:32px;height:1px;background:var(--red)}
+.hero h1{font-family:var(--serif);font-size:clamp(75px,9vw,125px);line-height:1.08;font-weight:500;letter-spacing:-4px;max-width:850px}
+.hero h1 span{color:var(--red);font-style:italic}
+.hero-description{color:var(--muted);max-width:550px;font-size:17px;line-height:2;margin:28px 0 32px}
+.hero-buttons{display:flex;flex-wrap:wrap;gap:14px}
+.hero-note{margin-top:65px;padding-top:18px;border-top:1px solid var(--border);max-width:420px;color:var(--muted);font-size:10px;letter-spacing:3px;text-transform:uppercase}
+.hero-langs{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:16px;font-size:15px;color:var(--teal);font-weight:600}
+.hero-langs span+span::before{content:"·";color:var(--red);margin-right:18px}
+
+/* HOMEPAGE FEATURE */
+.home-feature{padding:130px 0}
+.section-heading{margin-bottom:35px}
+.section-heading small{color:var(--red);letter-spacing:3px;font-size:10px;text-transform:uppercase}
+.section-heading h2{font-family:var(--serif);font-size:58px;font-weight:500;margin-top:12px}
+.section-heading p{color:var(--muted);margin-top:12px;line-height:1.8;font-size:16px}
+.feature-card{background:var(--surface);border:1px solid var(--border);padding:60px;min-height:420px;display:grid;grid-template-columns:1.2fr .8fr;gap:45px;align-items:center}
+.feature-label{color:var(--red);font-size:10px;letter-spacing:3px;text-transform:uppercase}
+.feature-card h3{font-family:var(--serif);font-size:55px;line-height:1.2;font-weight:500;margin:20px 0}
+.feature-card p{color:var(--muted);line-height:2;font-size:16px;max-width:470px}
+.feature-decoration{min-height:320px;background:linear-gradient(145deg,var(--teal),#1d7778);color:var(--paper);display:flex;align-items:center;justify-content:center;font-family:serif;font-size:150px;position:relative;overflow:hidden}
+.feature-decoration::before,.feature-decoration::after{content:"";position:absolute;width:190px;height:190px;border:1px solid rgba(226,226,196,.3);border-radius:50%}
+.feature-decoration::after{width:140px;height:140px}
+.closing-section{background:var(--teal);color:var(--paper);padding:90px 0;text-align:center}
+.closing-section h2{font-family:var(--serif);font-size:clamp(35px,5vw,60px);font-weight:400}
+.closing-section p{color:rgba(226,226,196,.7);margin:18px 0 28px;font-size:14px}
+
+/* BLOG PAGE */
+#blogPage{min-height:75vh;padding-bottom:80px}
+.blog-header{padding:85px 0 45px;border-bottom:1px solid var(--border)}
+.blog-header h1{font-family:var(--serif);font-size:75px;font-weight:500}
+.blog-header p{color:var(--muted);margin-top:12px;font-size:16px}
+.blog-toolbar{display:flex;justify-content:space-between;align-items:center;gap:15px;margin:30px 0;flex-wrap:wrap}
+.search-box{width:min(380px,100%);padding:19px;font-size:16px;background:var(--surface);border:1px solid var(--border);outline:none;color:var(--teal)}
+.search-box:focus,.field:focus{border-color:var(--red)}
+.blog-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px}
+.blog-card{background:var(--surface);border:1px solid var(--border);padding:38px;min-height:320px;transition:.25s ease;display:flex;flex-direction:column}
+.blog-card:hover{transform:translateY(-4px);border-color:var(--jade);box-shadow:0 15px 35px rgba(20,100,102,.08)}
+.blog-card .category{color:var(--red);font-size:10px;letter-spacing:2px;text-transform:uppercase}
+.blog-card h2{font-family:var(--serif);font-size:36px;font-weight:500;line-height:1.3;margin:16px 0 12px}
+.blog-card .excerpt{color:var(--muted);font-size:17px;line-height:1.9;margin-bottom:24px;white-space:pre-line}
+.card-footer{border-top:1px solid var(--border);padding-top:16px;margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.author{color:var(--muted);font-size:11px}
+.card-actions{display:flex;align-items:center;gap:14px}
+.card-actions button{background:transparent;border:0;color:var(--teal);font-size:12px;font-weight:600}
+.card-actions button:hover{color:var(--red)}
+.empty-state{text-align:center;padding:70px 20px;color:var(--muted);grid-column:1/-1}
+
+/* EDITOR */
+.panel{background:var(--surface);border:1px solid var(--border);padding:30px;margin:35px 0}
+.panel-heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+.panel-heading h2{font-family:var(--serif);font-size:30px;font-weight:500}
+.field-group{margin-bottom:18px}
+.field-group label{display:block;color:var(--teal);font-size:15px;font-weight:700;margin-bottom:12px}
+.field{display:block;width:100%;padding:17px 20px;font-size:15px;background:var(--paper);color:var(--teal);border:1px solid var(--border);outline:none;border-radius:0}
+.field::placeholder{color:#91a49a}
+#blogTitle{font-size:23px;padding:20px}
+#blogContent{font-size:19px;line-height:2;padding:24px;min-height:350px;resize:vertical}
+.editor-footer{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}
+#wordCount{color:var(--muted);font-size:11px}
+
+/* ARTICLE */
+#articlePage{padding:65px 0 90px}
+.article{max-width:780px;margin:auto}
+.back-button{margin-bottom:35px}
+.article-category{color:var(--red);font-size:10px;letter-spacing:3px;text-transform:uppercase}
+.article h1{font-family:var(--serif);font-size:76px;font-weight:500;line-height:1.15;margin:20px 0}
+.article-meta{color:var(--muted);font-size:12px;padding-bottom:25px;border-bottom:1px solid var(--border)}
+.article-content{color:var(--text);font-size:19px;line-height:2.2;white-space:pre-wrap;overflow-wrap:anywhere;padding:35px 0}
+.article-actions{display:flex;gap:12px;flex-wrap:wrap;padding:20px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.comments{margin-top:45px}
+.comments h2{font-family:var(--serif);font-size:32px;font-weight:500;margin-bottom:22px}
+.comment-form{display:flex;gap:10px;margin-bottom:30px}
+.comment-form .field{flex:1;font-size:16px;padding:19px}
+.comment{padding:18px 0;border-bottom:1px solid var(--border)}
+.comment strong{color:var(--red);font-size:15px}
+.comment p{color:var(--muted);font-size:16px;line-height:1.9;margin-top:8px;white-space:pre-wrap}
+
+/* AUTH MODAL */
+.modal-overlay{position:fixed;inset:0;z-index:100;background:rgba(15,48,47,.72);display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{width:min(430px,100%);background:var(--paper);border:1px solid var(--border);padding:35px;position:relative;box-shadow:0 25px 80px rgba(0,0,0,.2)}
+.modal-close{position:absolute;top:15px;right:17px;border:0;background:transparent;color:var(--teal);font-size:24px}
+.modal h2{font-family:var(--serif);font-size:35px;font-weight:500;margin-bottom:8px}
+.modal>p{color:var(--muted);font-size:13px;margin-bottom:25px}
+.modal .btn{width:100%;margin-top:5px}
+.modal-switch{text-align:center;color:var(--muted);font-size:12px;margin-top:22px}
+.modal-switch button{border:0;background:transparent;color:var(--red);font-weight:700;margin-left:5px}
+
+/* TOAST AND FOOTER */
+.toast{position:fixed;bottom:25px;right:25px;z-index:200;background:var(--teal);color:var(--paper);padding:15px 22px;font-size:13px;display:none;max-width:min(400px,calc(100% - 40px));box-shadow:0 8px 25px rgba(0,0,0,.15)}
+footer{border-top:1px solid var(--border);padding:40px 0;color:var(--muted);font-size:13px}
+.footer-inner{display:flex;justify-content:space-between;align-items:center;gap:15px}
+
+/* RESPONSIVE */
+@media (max-width:760px){
+    nav{height:auto;min-height:75px;padding:16px 0;flex-wrap:wrap;gap:15px}
+    .nav-links{order:3;width:100%;justify-content:center;gap:22px}
+    .nav-actions{gap:8px}
+    .nav-actions .btn{padding:10px 12px;font-size:13px}
+    #navActions .author{font-size:14px}
+    .hero{min-height:680px}
+    .hero h1{font-size:clamp(55px,12vw,78px);letter-spacing:-2px}
+    .hero-description{font-size:16px}
+    .section-heading h2{font-size:38px}
+    .feature-card{grid-template-columns:1fr;padding:25px;gap:25px;min-height:0}
+    .feature-card h3{font-size:36px}
+    .feature-decoration{min-height:200px}
+    .blog-grid{grid-template-columns:1fr}
+    .blog-header h1{font-size:48px}
+    .blog-card h2{font-size:29px}
+    #blogTitle{font-size:19px}
+    #blogContent{font-size:17px;min-height:280px}
+    .article h1{font-size:44px}
+    .article-content{font-size:17px}
+    .comment-form{flex-direction:column}
+    .footer-inner{flex-direction:column;text-align:center}
 }
-
-.logo {
-    font-size: 34px;
+@media (prefers-reduced-motion:reduce){
+    .petal,.hero-content{animation:none}
+    .petal{display:none}
 }
-
-.nav-links {
-    font-size: 15px;
-    gap: 35px;
-}
-
-.btn {
-    padding: 16px 25px;
-    font-size: 14px;
-}
-
-/* Homepage */
-.hero {
-    min-height: 820px;
-}
-
-.hero h1 {
-    font-size: clamp(75px, 9vw, 125px);
-}
-
-.hero-description {
-    font-size: 17px;
-    max-width: 550px;
-    line-height: 2;
-}
-
-/* Feature section */
-.home-feature {
-    padding: 130px 0;
-}
-
-.section-heading h2 {
-    font-size: 58px;
-}
-
-.section-heading p,
-.feature-card p {
-    font-size: 16px;
-}
-
-.feature-card {
-    padding: 60px;
-    min-height: 420px;
-}
-
-.feature-card h3 {
-    font-size: 55px;
-}
-
-.feature-decoration {
-    min-height: 320px;
-    font-size: 150px;
-}
-
-/* Blog section */
-.blog-header {
-    padding: 85px 0 45px;
-}
-
-.blog-header h1 {
-    font-size: 75px;
-}
-
-.blog-header p {
-    font-size: 16px;
-}
-
-.search-box,
-.field {
-    padding: 17px 20px;
-    font-size: 15px;
-}
-
-.blog-grid {
-    gap: 28px;
-}
-
-.blog-card {
-    padding: 38px;
-    min-height: 320px;
-}
-
-.blog-card h2 {
-    font-size: 34px;
-}
-
-.blog-card .excerpt {
-    font-size: 15px;
-}
-
-/* Article */
-.article h1 {
-    font-size: 76px;
-}
-
-.article-content {
-    font-size: 18px;
-    line-height: 2.2;
-}
-
-.comment p {
-    font-size: 15px;
-}
-
-/* Footer */
-footer {
-    padding: 40px 0;
-    font-size: 13px;
-}
-
-/* Responsive protection */
-@media (max-width: 760px) {
-    .hero {
-        min-height: 680px;
-    }
-
-    .hero h1 {
-        font-size: clamp(55px, 12vw, 78px);
-    }
-
-    .section-heading h2 {
-        font-size: 38px;
-    }
-
-    .feature-card h3 {
-        font-size: 36px;
-    }
-
-    .blog-header h1 {
-        font-size: 48px;
-    }
-
-    .article h1 {
-        font-size: 44px;
-    }
-}
-/* =====================================
-   LARGER TYPOGRAPHY
-===================================== */
-
-/* Username beside Sign out */
-#navActions .author {
-    font-size: 17px;
-    font-weight: 700;
-    color: var(--teal);
-}
-
-/* Navigation buttons */
-#navActions .btn,
-.nav-actions .btn {
-    font-size: 15px;
-    padding: 17px 27px;
-}
-
-/* Homepage heading */
-.hero h1 {
-    font-size: clamp(75px, 9vw, 125px);
-    line-height: 1.08;
-}
-
-/* General section headings */
-.section-heading h2 {
-    font-size: 58px;
-}
-
-.feature-card h3 {
-    font-size: 55px;
-}
-
-/* Blog page heading */
-.blog-header h1 {
-    font-size: 75px;
-}
-
-/* Blog titles */
-.blog-card h2 {
-    font-size: 36px;
-    line-height: 1.3;
-}
-
-/* Blog content */
-.blog-card .excerpt {
-    font-size: 17px;
-    line-height: 1.9;
-}
-
-/* Editor title and writing area */
-#blogTitle {
-    font-size: 23px;
-    padding: 20px;
-}
-
-#blogContent {
-    font-size: 19px;
-    line-height: 2;
-    padding: 24px;
-    min-height: 350px;
-}
-
-/* Editor labels */
-.field-group label {
-    font-size: 15px;
-    margin-bottom: 12px;
-}
-
-/* Search and comment input */
-.search-box,
-.comment-form .field {
-    font-size: 16px;
-    padding: 19px;
-}
-
-/* Article reading */
-.article h1 {
-    font-size: 76px;
-}
-
-.article-content {
-    font-size: 19px;
-    line-height: 2.2;
-}
-
-/* Comments */
-.comment strong {
-    font-size: 15px;
-}
-
-.comment p {
-    font-size: 16px;
-    line-height: 1.9;
-}
-
-
-/* =====================================
-   JAPANESE LANDSCAPE BACKGROUND
-===================================== */
-
-.hero {
-    background:
-        linear-gradient(
-            90deg,
-            rgba(226, 226, 196, 0.98) 0%,
-            rgba(226, 226, 196, 0.91) 43%,
-            rgba(226, 226, 196, 0.48) 100%
-        ),
-        url("https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=2000&q=85");
-
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-}
-
-/* Keep the decorative Japanese character subtle */
-.hero::before {
-    color: rgba(20, 100, 102, 0.12);
-    z-index: 0;
-}
-
-/* Better readability */
-.hero-content {
-    max-width: 850px;
-}
-
-
-/* =====================================
-   RESPONSIVE TEXT SIZES
-===================================== */
-
-@media (max-width: 760px) {
-    #navActions .author {
-        font-size: 14px;
-    }
-
-    .hero h1 {
-        font-size: clamp(55px, 12vw, 78px);
-    }
-
-    .blog-header h1 {
-        font-size: 48px;
-    }
-
-    .blog-card h2 {
-        font-size: 29px;
-    }
-
-    #blogTitle {
-        font-size: 19px;
-    }
-
-    #blogContent {
-        font-size: 17px;
-        min-height: 280px;
-    }
-
-    .article h1 {
-        font-size: 44px;
-    }
-
-    .article-content {
-        font-size: 17px;
-    }
-}
-    </style>
+</style>
 </head>
 
 <body>
 
-    <!-- NAVIGATION -->
-    <nav class="container">
-        <a href="#" class="logo" onclick="showHome()">Journal<span>.</span></a>
+<!-- NAVIGATION -->
+<nav class="container">
+    <a href="#" class="logo" onclick="showHome()">Journal<span>.</span></a>
 
-        <div class="nav-links">
-            <a href="#" onclick="showHome()">Home</a>
-            <a href="#" onclick="showBlogs()">Stories</a>
-            <a href="#about" onclick="showHome()">About</a>
-        </div>
+    <div class="nav-links">
+        <a href="#" onclick="showHome()">Home</a>
+        <a href="#" onclick="showBlogs()">Stories</a>
+        <a href="#about" onclick="showHome()">About</a>
+    </div>
 
-        <div class="nav-actions" id="navActions">
-            <button class="text-button" onclick="openAuth('login')">Sign in</button>
-            <button class="btn btn-primary" onclick="openAuth('register')">Join Journal</button>
-        </div>
-    </nav>
+    <div class="nav-actions" id="navActions">
+        <button class="text-button" onclick="openAuth('login')">Sign in</button>
+        <button class="btn btn-primary" onclick="openAuth('register')">Join Journal</button>
+    </div>
+</nav>
 
 
-    <!-- HOMEPAGE -->
-    <main id="homePage">
+<!-- HOMEPAGE -->
+<main id="homePage">
 
-        <section class="hero">
-            <div class="container">
-                <div class="hero-content">
+    <section class="hero">
 
-                    <div class="eyebrow">思考 · 言葉 · 物語</div>
-
-                    <h1>
-                        The art of being <span>thoughtful.</span>
-                    </h1>
-
-                    <p class="hero-description">
-                        A space for ideas, perspectives and stories worth sharing.
-                        Read something meaningful, discover different voices,
-                        and give your own thoughts a place to live.
-                    </p>
-
-                    <div class="hero-buttons">
-                        <button class="btn btn-primary" onclick="showBlogs()">
-                            Explore stories →
-                        </button>
-
-                        <button class="btn btn-outline" onclick="startWriting()">
-                            Share your thoughts ↗
-                        </button>
-                    </div>
-
-                    <div class="hero-note">
-                        A journal for curious minds · Est. 2026
-                    </div>
-
-                </div>
+        <!-- floating petals only, no background image -->
+        <div class="hero-art" aria-hidden="true">
+            <span class="petal" style="--x:8%;--s:9px;--d:17s;--w:2s"></span>
+            <span class="petal" style="--x:20%;--s:12px;--d:21s;--w:7s"></span>
+            <span class="petal" style="--x:33%;--s:8px;--d:15s;--w:4s"></span>
+            <span class="petal" style="--x:46%;--s:10px;--d:19s;--w:9s"></span>
+            <span class="petal" style="--x:58%;--s:9px;--d:14s;--w:0s"></span>
+            <span class="petal" style="--x:68%;--s:12px;--d:18s;--w:3s"></span>
+            <span class="petal" style="--x:76%;--s:8px;--d:12s;--w:6s"></span>
+            <span class="petal" style="--x:84%;--s:11px;--d:16s;--w:1s"></span>
+            <span class="petal" style="--x:92%;--s:9px;--d:20s;--w:8s"></span>
             </div>
-        </section>
+
+        <div class="container">
+            <div class="hero-content">
+
+                <div class="eyebrow">思考 · 言葉 · 物語</div>
+
+                <h1>The art of being <span>thoughtful.</span></h1>
+
+                <p class="hero-description">
+                    A space for ideas, perspectives and stories worth sharing.
+                    Read something meaningful, discover different voices,
+                    and give your own thoughts a place to live.
+                </p>
+
+                <div class="hero-buttons">
+                    <button class="btn btn-primary" onclick="showBlogs()">Explore stories →</button>
+                    <button class="btn btn-outline" onclick="startWriting()">Share your thoughts ↗</button>
+                </div>
+
+                <div class="hero-note">
+                    A journal for curious minds · Est. 2026
+                    <div class="hero-langs" style="letter-spacing:0;text-transform:none">
+                        <span>English</span><span>日本語</span><span>العربية</span><span>हिन्दी</span><span>اردو</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
 
 
-        <section class="home-feature container" id="about">
+    <section class="home-feature container" id="about">
 
-            <div class="section-heading">
-                <small>A different kind of space</small>
-                <h2>Less noise. More meaning.</h2>
+        <div class="section-heading">
+            <small>A different kind of space</small>
+            <h2>Less noise. More meaning.</h2>
+            <p>Not another place to scroll endlessly. A place to pause, read and think.</p>
+        </div>
+
+        <div class="feature-card">
+            <div>
+                <div class="feature-label">01 — The philosophy</div>
+                <h3>Not everything needs to be said loudly.</h3>
                 <p>
-                    Not another place to scroll endlessly.
-                    A place to pause, read and think.
+                    Good writing does not compete for attention.
+                    It earns it through honesty, clarity and perspective.
+                    Journal brings writers and readers together
+                    around ideas that deserve more than a passing glance.
                 </p>
             </div>
-
-            <div class="feature-card">
-
-                <div>
-                    <div class="feature-label">01 — The philosophy</div>
-
-                    <h3>Not everything needs to be said loudly.</h3>
-
-                    <p>
-                        Good writing does not compete for attention.
-                        It earns it through honesty, clarity and perspective.
-                        Journal brings writers and readers together
-                        around ideas that deserve more than a passing glance.
-                    </p>
-                </div>
-
-                <div class="feature-decoration">
-                    静
-                </div>
-
-            </div>
-        </section>
-
-
-        <section class="closing-section">
-            <div class="container">
-                <h2>Read something new.<br>Write something true.</h2>
-                <p>Your next idea might be worth sharing.</p>
-
-                <button class="btn btn-primary" onclick="showBlogs()">
-                    Enter the journal →
-                </button>
-            </div>
-        </section>
-
-    </main>
-
-
-    <!-- BLOG PAGE -->
-    <section id="blogPage" class="hidden">
-
-        <div class="container">
-
-            <header class="blog-header">
-                <div class="eyebrow">The journal</div>
-                <h1>Stories & perspectives.</h1>
-                <p>Discover ideas, read different perspectives and share your own.</p>
-            </header>
-
-            <div class="blog-toolbar">
-                <input
-                    type="search"
-                    id="searchInput"
-                    class="search-box"
-                    placeholder="Search stories..."
-                    oninput="renderBlogs()"
-                >
-
-                <button class="btn btn-primary" onclick="openEditor()">
-                    + Write a story
-                </button>
-            </div>
-
-
-            <!-- BLOG EDITOR -->
-            <div class="panel hidden" id="editorPanel">
-
-                <div class="panel-heading">
-                    <h2>Write your story</h2>
-                    <button class="text-button" onclick="closeEditor()">Close ×</button>
-                </div>
-
-                <div class="field-group">
-                    <label for="blogTitle">Title</label>
-                    <input
-                        type="text"
-                        id="blogTitle"
-                        class="field"
-                        placeholder="Give your story a title..."
-                        maxlength="200"
-                    >
-                </div>
-
-                <div class="field-group">
-                    <label for="blogContent">Your story</label>
-                    <textarea
-                        id="blogContent"
-                        class="field"
-                        placeholder="Start writing..."
-                    ></textarea>
-                </div>
-
-                <div class="editor-footer">
-                    <span id="wordCount">0 words</span>
-
-                    <button class="btn btn-primary" onclick="publishBlog()">
-                        Publish story →
-                    </button>
-                </div>
-
-            </div>
-
-
-            <!-- BLOG LIST -->
-            <div class="blog-grid" id="blogGrid">
-                <div class="empty-state">Loading stories...</div>
-            </div>
-
+            <div class="feature-decoration">静</div>
         </div>
     </section>
 
 
-    <!-- ARTICLE PAGE -->
-    <section id="articlePage" class="hidden">
-
+    <section class="closing-section">
         <div class="container">
-            <article class="article">
-
-                <button class="text-button back-button" onclick="showBlogs()">
-                    ← Back to stories
-                </button>
-
-                <div class="article-category">Journal entry</div>
-
-                <h1 id="articleTitle"></h1>
-
-                <div class="article-meta" id="articleMeta"></div>
-
-                <div class="article-content" id="articleContent"></div>
-
-                <div class="article-actions">
-                    <button class="btn btn-outline" id="likeButton" onclick="toggleLike()">
-                        ♡ Like
-                    </button>
-
-                    <button class="btn btn-outline" id="followButton" onclick="toggleFollow()">
-                        Follow author
-                    </button>
-
-                    <button class="btn btn-outline hidden" id="deleteButton" onclick="deleteBlog()">
-                        Delete story
-                    </button>
-                </div>
-
-
-                <!-- COMMENTS -->
-                <section class="comments">
-
-                    <h2>Conversation</h2>
-
-                    <form class="comment-form" onsubmit="postComment(event)">
-                        <input
-                            type="text"
-                            id="commentInput"
-                            class="field"
-                            placeholder="Write a thoughtful comment..."
-                            required
-                        >
-
-                        <button class="btn btn-primary" type="submit">
-                            Comment
-                        </button>
-                    </form>
-
-                    <div id="commentsList">
-                        <p class="author">Loading comments...</p>
-                    </div>
-
-                </section>
-
-            </article>
+            <h2>Read something new.<br>Write something true.</h2>
+            <p>Your next idea might be worth sharing.</p>
+            <button class="btn btn-primary" onclick="showBlogs()">Enter the journal →</button>
         </div>
-
     </section>
 
+</main>
 
-    <!-- AUTHENTICATION MODAL -->
-    <div class="modal-overlay hidden" id="authModal" onclick="closeAuthOutside(event)">
 
-        <div class="modal" onclick="event.stopPropagation()">
+<!-- BLOG PAGE -->
+<section id="blogPage" class="hidden">
+    <div class="container">
 
-            <button class="modal-close" onclick="closeAuth()">×</button>
+        <header class="blog-header">
+            <div class="eyebrow">The journal</div>
+            <h1>Stories & perspectives.</h1>
+            <p>Discover ideas, read different perspectives and share your own.</p>
+        </header>
 
-            <h2 id="authTitle">Welcome back.</h2>
-            <p id="authDescription">Sign in to continue to Journal.</p>
+        <div class="blog-toolbar">
+            <input type="search" id="searchInput" class="search-box" placeholder="Search stories..." oninput="renderBlogs()">
+            <button class="btn btn-primary" onclick="openEditor()">+ Write a story</button>
+        </div>
 
-            <form id="authForm" onsubmit="submitAuth(event)">
-
-                <div class="field-group hidden" id="emailGroup">
-                    <label for="authEmail">Email</label>
-                    <input
-                        type="email"
-                        id="authEmail"
-                        class="field"
-                        placeholder="you@example.com"
-                    >
-                </div>
-
-                <div class="field-group">
-                    <label for="loginUsername">Username</label>
-                    <input
-                        type="text"
-                        id="loginUsername"
-                        class="field"
-                        placeholder="Your username"
-                        required
-                    >
-                </div>
-
-                <div class="field-group">
-                    <label for="authPassword">Password</label>
-                    <input
-                        type="password"
-                        id="authPassword"
-                        class="field"
-                        placeholder="Your password"
-                        required
-                    >
-                </div>
-
-                <button class="btn btn-primary" id="authSubmit" type="submit">
-                    Sign in
-                </button>
-
-            </form>
-
-            <div class="modal-switch">
-                <span id="switchText">New to Journal?</span>
-                <button id="switchButton" onclick="switchAuth()">
-                    Create an account
-                </button>
+        <!-- BLOG EDITOR -->
+        <div class="panel hidden" id="editorPanel">
+            <div class="panel-heading">
+                <h2>Write your story</h2>
+                <button class="text-button" onclick="closeEditor()">Close ×</button>
             </div>
 
+            <div class="field-group">
+                <label for="blogTitle">Title</label>
+                <input type="text" id="blogTitle" class="field" placeholder="Give your story a title..." maxlength="200">
+            </div>
+
+            <div class="field-group">
+                <label for="blogContent">Your story</label>
+                <textarea id="blogContent" class="field" placeholder="Start writing..."></textarea>
+            </div>
+
+            <div class="editor-footer">
+                <span id="wordCount">0 words</span>
+                <button class="btn btn-primary" onclick="publishBlog()">Publish story →</button>
+            </div>
+        </div>
+
+        <!-- BLOG LIST -->
+        <div class="blog-grid" id="blogGrid">
+            <div class="empty-state">Loading stories...</div>
         </div>
 
     </div>
+</section>
 
 
-    <div class="toast" id="toast"></div>
+<!-- ARTICLE PAGE -->
+<section id="articlePage" class="hidden">
+    <div class="container">
+        <article class="article">
+
+            <button class="text-button back-button" onclick="showBlogs()">← Back to stories</button>
+
+            <div class="article-category">Journal entry</div>
+            <h1 id="articleTitle"></h1>
+            <div class="article-meta" id="articleMeta"></div>
+            <div class="article-content" id="articleContent"></div>
+
+            <div class="article-actions">
+                <button class="btn btn-outline" id="likeButton" onclick="toggleLike()">♡ Like</button>
+                <button class="btn btn-outline" id="followButton" onclick="toggleFollow()">Follow author</button>
+                <button class="btn btn-outline hidden" id="deleteButton" onclick="deleteBlog()">Delete story</button>
+            </div>
+
+            <!-- COMMENTS -->
+            <section class="comments">
+                <h2>Conversation</h2>
+
+                <form class="comment-form" onsubmit="postComment(event)">
+                    <input type="text" id="commentInput" class="field" placeholder="Write a thoughtful comment..." required>
+                    <button class="btn btn-primary" type="submit">Comment</button>
+                </form>
+
+                <div id="commentsList">
+                    <p class="author">Loading comments...</p>
+                </div>
+            </section>
+
+        </article>
+    </div>
+</section>
 
 
-    <footer>
-        <div class="container footer-inner">
-            <div class="logo">Journal<span>.</span></div>
-            <p>Thought · Words · Stories</p>
-            <p>© 2026 Journal. All rights reserved.</p>
+<!-- AUTHENTICATION MODAL -->
+<div class="modal-overlay hidden" id="authModal" onclick="closeAuthOutside(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+
+        <button class="modal-close" onclick="closeAuth()">×</button>
+
+        <h2 id="authTitle">Welcome back.</h2>
+        <p id="authDescription">Sign in to continue to Journal.</p>
+
+        <form id="authForm" onsubmit="submitAuth(event)">
+
+            <div class="field-group hidden" id="emailGroup">
+                <label for="authEmail">Email</label>
+                <input type="email" id="authEmail" class="field" placeholder="you@example.com">
+            </div>
+
+            <div class="field-group">
+                <label for="loginUsername">Username</label>
+                <input type="text" id="loginUsername" class="field" placeholder="Your username" required>
+            </div>
+
+            <div class="field-group">
+                <label for="authPassword">Password</label>
+                <input type="password" id="authPassword" class="field" placeholder="Your password" required>
+            </div>
+
+            <button class="btn btn-primary" id="authSubmit" type="submit">Sign in</button>
+
+        </form>
+
+        <div class="modal-switch">
+            <span id="switchText">New to Journal?</span>
+            <button id="switchButton" onclick="switchAuth()">Create an account</button>
         </div>
-    </footer>
+
+    </div>
+</div>
 
 
-    <script>
-        /* =================================
-           CONFIGURATION
-        ================================= */
-
-        const API = "http://127.0.0.1:8000";
-
-        let token = localStorage.getItem("access_token");
-        let currentUser = null;
-        let blogs = [];
-        let currentBlog = null;
-        let authMode = "login";
-        let likedBlogs = new Set();
-        let followedUsers = new Set();
+<div class="toast" id="toast"></div>
 
 
-        /* =================================
-           HELPERS
-        ================================= */
-
-        function escapeHTML(value) {
-            return String(value ?? "").replace(/[&<>"']/g, char => ({
-                "&": "&amp;",
-                "<": "&lt;",
-                ">": "&gt;",
-                '"': "&quot;",
-                "'": "&#039;"
-            })[char]);
-        }
+<footer>
+    <div class="container footer-inner">
+        <div class="logo">Journal<span>.</span></div>
+        <p>Thought · Words · Stories</p>
+        <p>© 2026 Journal. All rights reserved.</p>
+    </div>
+</footer>
 
 
-        function getBlogId(blog) {
-            return blog.blog_id ?? blog.id;
-        }
+<script>
+/* CONFIGURATION */
+const API = "http://127.0.0.1:8000";
+
+let token = localStorage.getItem("access_token");
+let currentUser = null;
+let blogs = [];
+let currentBlog = null;
+let authMode = "login";
+let likedBlogs = new Set();
+let followedUsers = new Set();
 
 
-        function notify(message) {
-            const toast = document.getElementById("toast");
+/* HELPERS */
+function escapeHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+    })[char]);
+}
 
-            toast.textContent = message;
-            toast.style.display = "block";
+function getBlogId(blog) {
+    return blog.blog_id ?? blog.id;
+}
 
-            clearTimeout(window.toastTimer);
+function notify(message) {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.style.display = "block";
+    clearTimeout(window.toastTimer);
+    window.toastTimer = setTimeout(() => { toast.style.display = "none"; }, 3000);
+}
 
-            window.toastTimer = setTimeout(() => {
-                toast.style.display = "none";
-            }, 3000);
-        }
+async function api(path, options = {}) {
+    const headers = { ...(options.headers || {}) };
+
+    if (token) headers.Authorization = `Bearer ${token}`;
+
+    if (options.body && !(options.body instanceof FormData) && !(options.body instanceof URLSearchParams)) {
+        headers["Content-Type"] = "application/json";
+    }
+
+    const response = await fetch(API + path, { ...options, headers });
+
+    if (response.status === 401) {
+        logout(false);
+        throw new Error("Your session has expired. Please sign in again.");
+    }
+
+    if (!response.ok) {
+        let message = `Request failed (${response.status})`;
+        try {
+            const data = await response.json();
+            if (typeof data.detail === "string") message = data.detail;
+            else if (Array.isArray(data.detail)) message = data.detail.map(item => item.msg).join(", ");
+            else if (data.message) message = data.message;
+        } catch {}
+        throw new Error(message);
+    }
+
+    if (response.status === 204) return null;
+
+    const contentType = response.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) return response.json();
+    return null;
+}
 
 
-        async function api(path, options = {}) {
-            const headers = {
-                ...(options.headers || {})
-            };
+/* PAGE NAVIGATION */
+function hidePages() {
+    document.getElementById("homePage").classList.add("hidden");
+    document.getElementById("blogPage").classList.add("hidden");
+    document.getElementById("articlePage").classList.add("hidden");
+}
 
-            if (token) {
-                headers.Authorization = `Bearer ${token}`;
-            }
+function showHome() {
+    hidePages();
+    document.getElementById("homePage").classList.remove("hidden");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
 
-            if (
-                options.body &&
-                !(options.body instanceof FormData) &&
-                !(options.body instanceof URLSearchParams)
-            ) {
-                headers["Content-Type"] = "application/json";
-            }
+async function showBlogs() {
+    hidePages();
+    document.getElementById("blogPage").classList.remove("hidden");
+    closeEditor();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    await loadBlogs();
+}
 
-            const response = await fetch(API + path, {
-                ...options,
-                headers
+function startWriting() {
+    if (!token) { openAuth("login"); return; }
+    showBlogs().then(() => openEditor());
+}
+
+function updateNavigation() {
+    const nav = document.getElementById("navActions");
+
+    if (token && currentUser) {
+        nav.innerHTML = `
+            <span class="author">${escapeHTML(currentUser.username || "Member")}</span>
+            <button class="btn btn-outline" onclick="logout()">Sign out</button>
+        `;
+    } else {
+        nav.innerHTML = `
+            <button class="text-button" onclick="openAuth('login')">Sign in</button>
+            <button class="btn btn-primary" onclick="openAuth('register')">Join Journal</button>
+        `;
+    }
+}
+
+
+/* AUTHENTICATION */
+function openAuth(mode = "login") {
+    authMode = mode;
+    updateAuthModal();
+    document.getElementById("authModal").classList.remove("hidden");
+}
+
+function closeAuth() {
+    document.getElementById("authModal").classList.add("hidden");
+}
+
+function closeAuthOutside(event) {
+    if (event.target.id === "authModal") closeAuth();
+}
+
+function switchAuth() {
+    authMode = authMode === "login" ? "register" : "login";
+    updateAuthModal();
+}
+
+function updateAuthModal() {
+    const isRegister = authMode === "register";
+
+    document.getElementById("authTitle").textContent = isRegister ? "Create an account." : "Welcome back.";
+    document.getElementById("authDescription").textContent = isRegister ? "Join the Journal community." : "Sign in to continue to Journal.";
+    document.getElementById("emailGroup").classList.toggle("hidden", !isRegister);
+    document.getElementById("authEmail").required = isRegister;
+    document.getElementById("authSubmit").textContent = isRegister ? "Create account" : "Sign in";
+    document.getElementById("switchText").textContent = isRegister ? "Already a member?" : "New to Journal?";
+    document.getElementById("switchButton").textContent = isRegister ? "Sign in" : "Create an account";
+}
+
+async function submitAuth(event) {
+    event.preventDefault();
+
+    const username = document.getElementById("loginUsername").value.trim();
+    const password = document.getElementById("authPassword").value;
+
+    try {
+        if (authMode === "register") {
+            const email = document.getElementById("authEmail").value.trim();
+
+            await api("/user", {
+                method: "POST",
+                body: JSON.stringify({ username, email, password })
             });
 
-            if (response.status === 401) {
-                logout(false);
-                throw new Error("Your session has expired. Please sign in again.");
-            }
-
-            if (!response.ok) {
-                let message = `Request failed (${response.status})`;
-
-                try {
-                    const data = await response.json();
-
-                    if (typeof data.detail === "string") {
-                        message = data.detail;
-                    } else if (Array.isArray(data.detail)) {
-                        message = data.detail.map(item => item.msg).join(", ");
-                    } else if (data.message) {
-                        message = data.message;
-                    }
-                } catch {
-                    // Response did not contain JSON.
-                }
-
-                throw new Error(message);
-            }
-
-            if (response.status === 204) {
-                return null;
-            }
-
-            const contentType = response.headers.get("content-type") || "";
-
-            if (contentType.includes("application/json")) {
-                return response.json();
-            }
-
-            return null;
+            notify("Account created. You can now sign in.");
+            authMode = "login";
+            updateAuthModal();
+            document.getElementById("authPassword").value = "";
+            return;
         }
 
+        const formData = new URLSearchParams();
+        formData.append("username", username);
+        formData.append("password", password);
 
-        /* =================================
-           PAGE NAVIGATION
-        ================================= */
+        const response = await fetch(`${API}/token`, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: formData
+        });
 
-        function hidePages() {
-            document.getElementById("homePage").classList.add("hidden");
-            document.getElementById("blogPage").classList.add("hidden");
-            document.getElementById("articlePage").classList.add("hidden");
+        if (!response.ok) {
+            let message = "Invalid username or password.";
+            try {
+                const data = await response.json();
+                message = data.detail || message;
+            } catch {}
+            throw new Error(message);
         }
 
+        const data = await response.json();
+        token = data.access_token;
 
-        function showHome() {
-            hidePages();
-            document.getElementById("homePage").classList.remove("hidden");
-            window.scrollTo({ top: 0, behavior: "smooth" });
-        }
+        if (!token) throw new Error("The server did not return an access token.");
 
+        localStorage.setItem("access_token", token);
 
-        async function showBlogs() {
-            hidePages();
-            document.getElementById("blogPage").classList.remove("hidden");
+        await loadCurrentUser();
+        closeAuth();
+        updateNavigation();
+        notify("You are now signed in.");
 
-            closeEditor();
-
-            window.scrollTo({ top: 0, behavior: "smooth" });
-
+        if (!document.getElementById("blogPage").classList.contains("hidden")) {
             await loadBlogs();
         }
 
-
-        function startWriting() {
-            if (!token) {
-                openAuth("login");
-                return;
-            }
-
-            showBlogs().then(() => openEditor());
-        }
-
-
-        function updateNavigation() {
-            const nav = document.getElementById("navActions");
-
-            if (token && currentUser) {
-                nav.innerHTML = `
-                    <span class="author">
-                        ${escapeHTML(currentUser.username || "Member")}
-                    </span>
-                    <button class="btn btn-outline" onclick="logout()">
-                        Sign out
-                    </button>
-                `;
-            } else {
-                nav.innerHTML = `
-                    <button class="text-button" onclick="openAuth('login')">
-                        Sign in
-                    </button>
-                    <button class="btn btn-primary" onclick="openAuth('register')">
-                        Join Journal
-                    </button>
-                `;
-            }
-        }
-
-
-        /* =================================
-           AUTHENTICATION
-        ================================= */
-
-        function openAuth(mode = "login") {
-            authMode = mode;
-            updateAuthModal();
-
-            document.getElementById("authModal").classList.remove("hidden");
-        }
-
-
-        function closeAuth() {
-            document.getElementById("authModal").classList.add("hidden");
-        }
-
-
-        function closeAuthOutside(event) {
-            if (event.target.id === "authModal") {
-                closeAuth();
-            }
-        }
-
-
-        function switchAuth() {
-            authMode = authMode === "login" ? "register" : "login";
-            updateAuthModal();
-        }
-
-
-        function updateAuthModal() {
-            const isRegister = authMode === "register";
-
-            document.getElementById("authTitle").textContent =
-                isRegister ? "Create an account." : "Welcome back.";
-
-            document.getElementById("authDescription").textContent =
-                isRegister
-                    ? "Join the Journal community."
-                    : "Sign in to continue to Journal.";
-
-            document.getElementById("emailGroup").classList.toggle("hidden", !isRegister);
-
-            document.getElementById("authEmail").required = isRegister;
-
-            document.getElementById("authSubmit").textContent =
-                isRegister ? "Create account" : "Sign in";
-
-            document.getElementById("switchText").textContent =
-                isRegister ? "Already a member?" : "New to Journal?";
-
-            document.getElementById("switchButton").textContent =
-                isRegister ? "Sign in" : "Create an account";
-        }
-
-
-        async function submitAuth(event) {
-            event.preventDefault();
-
-            const username = document.getElementById("loginUsername").value.trim();
-            const password = document.getElementById("authPassword").value;
-
-            try {
-                if (authMode === "register") {
-                    const email = document.getElementById("authEmail").value.trim();
-
-                    await api("/user", {
-                        method: "POST",
-                        body: JSON.stringify({
-                            username,
-                            email,
-                            password
-                        })
-                    });
-
-                    notify("Account created. You can now sign in.");
-
-                    authMode = "login";
-                    updateAuthModal();
-
-                    document.getElementById("authPassword").value = "";
-                    return;
-                }
-
-                const formData = new URLSearchParams();
-
-                formData.append("username", username);
-                formData.append("password", password);
-
-                const response = await fetch(`${API}/token`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/x-www-form-urlencoded"
-                    },
-                    body: formData
-                });
-
-                if (!response.ok) {
-                    let message = "Invalid username or password.";
-
-                    try {
-                        const data = await response.json();
-                        message = data.detail || message;
-                    } catch {}
-
-                    throw new Error(message);
-                }
-
-                const data = await response.json();
-
-                token = data.access_token;
-
-                if (!token) {
-                    throw new Error("The server did not return an access token.");
-                }
-
-                localStorage.setItem("access_token", token);
-
-                await loadCurrentUser();
-
-                closeAuth();
-                updateNavigation();
-
-                notify("You are now signed in.");
-
-                if (!document.getElementById("blogPage").classList.contains("hidden")) {
-                    await loadBlogs();
-                }
-
-            } catch (error) {
-                notify(error.message);
-            }
-        }
-
-
-        async function loadCurrentUser() {
-            if (!token) {
-                currentUser = null;
-                updateNavigation();
-                return;
-            }
-
-            try {
-                currentUser = await api("/user/me");
-            } catch (error) {
-                currentUser = null;
-                token = null;
-                localStorage.removeItem("access_token");
-            }
-
-            updateNavigation();
-        }
-
-
-        function logout(showMessage = true) {
-            token = null;
-            currentUser = null;
-
-            localStorage.removeItem("access_token");
-
-            updateNavigation();
-
-            if (showMessage) {
-                notify("You have signed out.");
-            }
-
-            if (!document.getElementById("articlePage").classList.contains("hidden")) {
-                openArticle(currentBlog ? getBlogId(currentBlog) : null);
-            }
-        }
-
-
-        /* =================================
-           BLOG FEED
-        ================================= */
-
-        async function loadBlogs() {
-            const grid = document.getElementById("blogGrid");
-
-            grid.innerHTML = `<div class="empty-state">Loading stories...</div>`;
-
-            try {
-                const data = await api("/blogs");
-
-                blogs = Array.isArray(data) ? data : [];
-
-                renderBlogs();
-
-            } catch (error) {
-                grid.innerHTML = `
-                    <div class="empty-state">
-                        Could not load stories.<br><br>
-                        ${escapeHTML(error.message)}
+    } catch (error) {
+        notify(error.message);
+    }
+}
+
+async function loadCurrentUser() {
+    if (!token) {
+        currentUser = null;
+        updateNavigation();
+        return;
+    }
+
+    try {
+        currentUser = await api("/user/me");
+    } catch (error) {
+        currentUser = null;
+        token = null;
+        localStorage.removeItem("access_token");
+    }
+
+    updateNavigation();
+}
+
+function logout(showMessage = true) {
+    token = null;
+    currentUser = null;
+    localStorage.removeItem("access_token");
+    updateNavigation();
+
+    if (showMessage) notify("You have signed out.");
+
+    if (!document.getElementById("articlePage").classList.contains("hidden")) {
+        openArticle(currentBlog ? getBlogId(currentBlog) : null);
+    }
+}
+
+
+/* BLOG FEED */
+async function loadBlogs() {
+    const grid = document.getElementById("blogGrid");
+    grid.innerHTML = `<div class="empty-state">Loading stories...</div>`;
+
+    try {
+        const data = await api("/blogs");
+        blogs = Array.isArray(data) ? data : [];
+        renderBlogs();
+    } catch (error) {
+        grid.innerHTML = `
+            <div class="empty-state">
+                Could not load stories.<br><br>
+                ${escapeHTML(error.message)}
+            </div>
+        `;
+    }
+}
+
+function renderBlogs() {
+    const grid = document.getElementById("blogGrid");
+    const search = document.getElementById("searchInput").value.trim().toLowerCase();
+
+    const filtered = blogs.filter(blog => {
+        const title = String(blog.title || "").toLowerCase();
+        const content = String(blog.content || "").toLowerCase();
+        return title.includes(search) || content.includes(search);
+    });
+
+    if (!filtered.length) {
+        grid.innerHTML = `<div class="empty-state">No stories found. Try another search.</div>`;
+        return;
+    }
+
+    grid.innerHTML = filtered.map(blog => {
+        const id = getBlogId(blog);
+        const title = escapeHTML(blog.title || "Untitled story");
+        const content = escapeHTML(blog.content || "");
+        const authorId = escapeHTML(blog.author_id ?? "Unknown");
+        const excerpt = content.length > 180 ? content.substring(0, 180) + "..." : content;
+
+        return `
+            <article class="blog-card">
+                <div class="category">Journal entry</div>
+                <h2>${title}</h2>
+                <p class="excerpt">${excerpt}</p>
+                <div class="card-footer">
+                    <span class="author">Author ID: ${authorId}</span>
+                    <div class="card-actions">
+                        <button onclick="openArticle(${Number(id)})">Read story →</button>
                     </div>
-                `;
-            }
-        }
+                </div>
+            </article>
+        `;
+    }).join("");
+}
 
 
-        function renderBlogs() {
-            const grid = document.getElementById("blogGrid");
+/* PUBLISHING */
+function openEditor() {
+    if (!token) { openAuth("login"); return; }
 
-            const search = document.getElementById("searchInput").value
-                .trim()
-                .toLowerCase();
+    const panel = document.getElementById("editorPanel");
+    panel.classList.remove("hidden");
+    panel.scrollIntoView({ behavior: "smooth", block: "center" });
+}
 
-            const filtered = blogs.filter(blog => {
-                const title = String(blog.title || "").toLowerCase();
-                const content = String(blog.content || "").toLowerCase();
+function closeEditor() {
+    document.getElementById("editorPanel").classList.add("hidden");
+}
 
-                return title.includes(search) || content.includes(search);
-            });
+document.getElementById("blogContent").addEventListener("input", function () {
+    const words = this.value.trim() ? this.value.trim().split(/\s+/).length : 0;
+    document.getElementById("wordCount").textContent = `${words} words`;
+});
 
-            if (!filtered.length) {
-                grid.innerHTML = `
-                    <div class="empty-state">
-                        No stories found. Try another search.
-                    </div>
-                `;
-                return;
-            }
+async function publishBlog() {
+    if (!token) { openAuth("login"); return; }
 
-            grid.innerHTML = filtered.map(blog => {
-                const id = getBlogId(blog);
+    const title = document.getElementById("blogTitle").value.trim();
+    const content = document.getElementById("blogContent").value.trim();
 
-                const title = escapeHTML(blog.title || "Untitled story");
-                const content = escapeHTML(blog.content || "");
-                const authorId = escapeHTML(blog.author_id ?? "Unknown");
+    if (!title || !content) {
+        notify("Please enter a title and story.");
+        return;
+    }
 
-                const excerpt = content.length > 180
-                    ? content.substring(0, 180) + "..."
-                    : content;
-
-                return `
-                    <article class="blog-card">
-
-                        <div class="category">Journal entry</div>
-
-                        <h2>${title}</h2>
-
-                        <p class="excerpt">${excerpt}</p>
-
-                        <div class="card-footer">
-
-                            <span class="author">
-                                Author ID: ${authorId}
-                            </span>
-
-                            <div class="card-actions">
-                                <button onclick="openArticle(${Number(id)})">
-                                    Read story →
-                                </button>
-                            </div>
-
-                        </div>
-
-                    </article>
-                `;
-            }).join("");
-        }
-
-
-        /* =================================
-           PUBLISHING
-        ================================= */
-
-        function openEditor() {
-            if (!token) {
-                openAuth("login");
-                return;
-            }
-
-            document.getElementById("editorPanel").classList.remove("hidden");
-
-            document.getElementById("editorPanel").scrollIntoView({
-                behavior: "smooth",
-                block: "center"
-            });
-        }
-
-
-        function closeEditor() {
-            document.getElementById("editorPanel").classList.add("hidden");
-        }
-
-
-        document.getElementById("blogContent").addEventListener("input", function() {
-            const words = this.value.trim()
-                ? this.value.trim().split(/\s+/).length
-                : 0;
-
-            document.getElementById("wordCount").textContent =
-                `${words} words`;
+    try {
+        await api("/blog", {
+            method: "POST",
+            body: JSON.stringify({ title, content })
         });
 
+        document.getElementById("blogTitle").value = "";
+        document.getElementById("blogContent").value = "";
+        document.getElementById("wordCount").textContent = "0 words";
 
-        async function publishBlog() {
-            if (!token) {
-                openAuth("login");
-                return;
-            }
+        closeEditor();
+        notify("Your story has been published.");
+        await loadBlogs();
 
-            const title = document.getElementById("blogTitle").value.trim();
-            const content = document.getElementById("blogContent").value.trim();
+    } catch (error) {
+        notify(error.message);
+    }
+}
 
-            if (!title || !content) {
-                notify("Please enter a title and story.");
-                return;
-            }
 
-            try {
-                await api("/blog", {
-                    method: "POST",
-                    body: JSON.stringify({
-                        title,
-                        content
-                    })
-                });
+/* INDIVIDUAL ARTICLE */
+async function openArticle(blogId) {
+    if (blogId === null || blogId === undefined) {
+        showBlogs();
+        return;
+    }
 
-                document.getElementById("blogTitle").value = "";
-                document.getElementById("blogContent").value = "";
-                document.getElementById("wordCount").textContent = "0 words";
+    try {
+        const blog = await api(`/blog/${blogId}`);
+        currentBlog = blog;
 
-                closeEditor();
+        hidePages();
+        document.getElementById("articlePage").classList.remove("hidden");
 
-                notify("Your story has been published.");
+        document.getElementById("articleTitle").textContent = blog.title || "Untitled story";
+        document.getElementById("articleContent").textContent = blog.content || "";
+        document.getElementById("articleMeta").textContent = `Author ID: ${blog.author_id ?? "Unknown"}`;
 
-                await loadBlogs();
+        const isOwner = currentUser &&
+            String(currentUser.user_id ?? currentUser.id) === String(blog.author_id);
 
-            } catch (error) {
-                notify(error.message);
-            }
+        document.getElementById("deleteButton").classList.toggle("hidden", !isOwner);
+
+        updateArticleButtons();
+        await loadComments(blogId);
+
+        window.scrollTo({ top: 0, behavior: "smooth" });
+
+    } catch (error) {
+        notify(error.message);
+    }
+}
+
+function updateArticleButtons() {
+    if (!currentBlog) return;
+
+    const id = String(getBlogId(currentBlog));
+    const authorId = String(currentBlog.author_id);
+
+    document.getElementById("likeButton").textContent = likedBlogs.has(id) ? "♥ Liked" : "♡ Like";
+    document.getElementById("followButton").textContent = followedUsers.has(authorId) ? "Following" : "Follow author";
+
+    const isSelf = currentUser && String(currentUser.user_id ?? currentUser.id) === authorId;
+    document.getElementById("followButton").classList.toggle("hidden", !!isSelf);
+}
+
+
+/* COMMENTS */
+async function loadComments(blogId) {
+    const container = document.getElementById("commentsList");
+    container.innerHTML = `<p class="author">Loading comments...</p>`;
+
+    try {
+        const data = await api(`/blog/${blogId}/comments`);
+        const comments = Array.isArray(data) ? data : [];
+
+        if (!comments.length) {
+            container.innerHTML = `<p class="author">No comments yet. Start the conversation.</p>`;
+            return;
         }
 
+        container.innerHTML = comments.map(comment => {
+            const author = comment.username ?? comment.user_id ?? comment.commenter_id ?? "User";
+            const content = comment.content ?? comment.text ?? "";
 
-        /* =================================
-           INDIVIDUAL ARTICLE
-        ================================= */
+            return `
+                <div class="comment">
+                    <strong>${escapeHTML(author)}</strong>
+                    <p>${escapeHTML(content)}</p>
+                </div>
+            `;
+        }).join("");
 
-        async function openArticle(blogId) {
-            if (blogId === null || blogId === undefined) {
-                showBlogs();
-                return;
-            }
+    } catch (error) {
+        container.innerHTML = `<p class="author">${escapeHTML(error.message)}</p>`;
+    }
+}
 
-            try {
-                const blog = await api(`/blog/${blogId}`);
+async function postComment(event) {
+    event.preventDefault();
 
-                currentBlog = blog;
+    if (!token) { openAuth("login"); return; }
+    if (!currentBlog) return;
 
-                hidePages();
+    const input = document.getElementById("commentInput");
+    const content = input.value.trim();
+    if (!content) return;
 
-                document.getElementById("articlePage").classList.remove("hidden");
+    const blogId = getBlogId(currentBlog);
 
-                document.getElementById("articleTitle").textContent =
-                    blog.title || "Untitled story";
+    try {
+        await api(`/blog/${blogId}/comment`, {
+            method: "POST",
+            body: JSON.stringify({ content })
+        });
 
-                document.getElementById("articleContent").textContent =
-                    blog.content || "";
+        input.value = "";
+        notify("Comment posted.");
+        await loadComments(blogId);
 
-                document.getElementById("articleMeta").textContent =
-                    `Author ID: ${blog.author_id ?? "Unknown"}`;
+    } catch (error) {
+        notify(error.message);
+    }
+}
 
-                const isOwner = currentUser &&
-                    String(currentUser.user_id ?? currentUser.id) ===
-                    String(blog.author_id);
 
-                document.getElementById("deleteButton")
-                    .classList.toggle("hidden", !isOwner);
+/* LIKE */
+async function toggleLike() {
+    if (!token) { openAuth("login"); return; }
+    if (!currentBlog) return;
 
-                updateArticleButtons();
+    const id = String(getBlogId(currentBlog));
 
-                await loadComments(blogId);
-
-                window.scrollTo({ top: 0, behavior: "smooth" });
-
-            } catch (error) {
-                notify(error.message);
-            }
+    try {
+        if (likedBlogs.has(id)) {
+            await api(`/blog/${id}/like`, { method: "DELETE" });
+            likedBlogs.delete(id);
+            notify("Like removed.");
+        } else {
+            await api(`/blog/${id}/like`, { method: "POST" });
+            likedBlogs.add(id);
+            notify("You liked this story.");
         }
 
+        updateArticleButtons();
 
-        function updateArticleButtons() {
-            if (!currentBlog) return;
+    } catch (error) {
+        notify(error.message);
+    }
+}
 
-            const id = String(getBlogId(currentBlog));
-            const authorId = String(currentBlog.author_id);
 
-            document.getElementById("likeButton").textContent =
-                likedBlogs.has(id) ? "♥ Liked" : "♡ Like";
+/* FOLLOW */
+async function toggleFollow() {
+    if (!token) { openAuth("login"); return; }
+    if (!currentBlog) return;
 
-            document.getElementById("followButton").textContent =
-                followedUsers.has(authorId) ? "Following" : "Follow author";
+    const authorId = String(currentBlog.author_id);
 
-            if (currentUser && String(currentUser.user_id ?? currentUser.id) === authorId) {
-                document.getElementById("followButton").classList.add("hidden");
-            } else {
-                document.getElementById("followButton").classList.remove("hidden");
-            }
+    if (currentUser && authorId === String(currentUser.user_id ?? currentUser.id)) {
+        notify("You cannot follow yourself.");
+        return;
+    }
+
+    try {
+        if (followedUsers.has(authorId)) {
+            await api(`/user/${authorId}/follow`, { method: "DELETE" });
+            followedUsers.delete(authorId);
+            notify("You unfollowed this author.");
+        } else {
+            await api(`/user/${authorId}/follow`, { method: "POST" });
+            followedUsers.add(authorId);
+            notify("You are now following this author.");
         }
 
+        updateArticleButtons();
 
-        /* =================================
-           COMMENTS
-        ================================= */
-
-        async function loadComments(blogId) {
-            const container = document.getElementById("commentsList");
-
-            container.innerHTML = `<p class="author">Loading comments...</p>`;
-
-            try {
-                const data = await api(`/blog/${blogId}/comments`);
-
-                const comments = Array.isArray(data) ? data : [];
-
-                if (!comments.length) {
-                    container.innerHTML = `
-                        <p class="author">No comments yet. Start the conversation.</p>
-                    `;
-                    return;
-                }
-
-                container.innerHTML = comments.map(comment => {
-                    const author = comment.username ??
-                        comment.user_id ??
-                        comment.commenter_id ??
-                        "User";
-
-                    const content = comment.content ?? comment.text ?? "";
-
-                    return `
-                        <div class="comment">
-                            <strong>${escapeHTML(author)}</strong>
-                            <p>${escapeHTML(content)}</p>
-                        </div>
-                    `;
-                }).join("");
-
-            } catch (error) {
-                container.innerHTML = `
-                    <p class="author">${escapeHTML(error.message)}</p>
-                `;
-            }
-        }
+    } catch (error) {
+        notify(error.message);
+    }
+}
 
 
-        async function postComment(event) {
-            event.preventDefault();
+/* DELETE BLOG */
+async function deleteBlog() {
+    if (!token || !currentBlog) { openAuth("login"); return; }
 
-            if (!token) {
-                openAuth("login");
-                return;
-            }
+    if (!confirm("Are you sure you want to delete this story?")) return;
 
-            if (!currentBlog) return;
+    const blogId = getBlogId(currentBlog);
 
-            const input = document.getElementById("commentInput");
-            const content = input.value.trim();
-
-            if (!content) return;
-
-            const blogId = getBlogId(currentBlog);
-
-            try {
-                await api(`/blog/${blogId}/comment`, {
-                    method: "POST",
-                    body: JSON.stringify({ content })
-                });
-
-                input.value = "";
-
-                notify("Comment posted.");
-
-                await loadComments(blogId);
-
-            } catch (error) {
-                notify(error.message);
-            }
-        }
+    try {
+        await api(`/blog/${blogId}`, { method: "DELETE" });
+        currentBlog = null;
+        notify("Story deleted.");
+        await showBlogs();
+    } catch (error) {
+        notify(error.message);
+    }
+}
 
 
-        /* =================================
-           LIKE
-        ================================= */
+/* INITIALIZATION */
+async function initialize() {
+    await loadCurrentUser();
+    updateNavigation();
+    showHome();
+}
 
-        async function toggleLike() {
-            if (!token) {
-                openAuth("login");
-                return;
-            }
-
-            if (!currentBlog) return;
-
-            const id = String(getBlogId(currentBlog));
-
-            try {
-                if (likedBlogs.has(id)) {
-                    await api(`/blog/${id}/like`, {
-                        method: "DELETE"
-                    });
-
-                    likedBlogs.delete(id);
-                    notify("Like removed.");
-
-                } else {
-                    await api(`/blog/${id}/like`, {
-                        method: "POST"
-                    });
-
-                    likedBlogs.add(id);
-                    notify("You liked this story.");
-                }
-
-                updateArticleButtons();
-
-            } catch (error) {
-                notify(error.message);
-            }
-        }
-
-
-        /* =================================
-           FOLLOW
-        ================================= */
-
-        async function toggleFollow() {
-            if (!token) {
-                openAuth("login");
-                return;
-            }
-
-            if (!currentBlog) return;
-
-            const authorId = String(currentBlog.author_id);
-
-            if (
-                currentUser &&
-                authorId === String(currentUser.user_id ?? currentUser.id)
-            ) {
-                notify("You cannot follow yourself.");
-                return;
-            }
-
-            try {
-                if (followedUsers.has(authorId)) {
-                    await api(`/user/${authorId}/follow`, {
-                        method: "DELETE"
-                    });
-
-                    followedUsers.delete(authorId);
-                    notify("You unfollowed this author.");
-
-                } else {
-                    await api(`/user/${authorId}/follow`, {
-                        method: "POST"
-                    });
-
-                    followedUsers.add(authorId);
-                    notify("You are now following this author.");
-                }
-
-                updateArticleButtons();
-
-            } catch (error) {
-                notify(error.message);
-            }
-        }
-
-
-        /* =================================
-           DELETE BLOG
-        ================================= */
-
-        async function deleteBlog() {
-            if (!token || !currentBlog) {
-                openAuth("login");
-                return;
-            }
-
-            const confirmed = confirm("Are you sure you want to delete this story?");
-
-            if (!confirmed) return;
-
-            const blogId = getBlogId(currentBlog);
-
-            try {
-                await api(`/blog/${blogId}`, {
-                    method: "DELETE"
-                });
-
-                currentBlog = null;
-
-                notify("Story deleted.");
-
-                await showBlogs();
-
-            } catch (error) {
-                notify(error.message);
-            }
-        }
-
-
-        /* =================================
-           INITIALIZATION
-        ================================= */
-
-        async function initialize() {
-            await loadCurrentUser();
-            updateNavigation();
-
-            showHome();
-        }
-
-        initialize();
-
-    </script>
+initialize();
+</script>
 
 </body>
 </html>
-
