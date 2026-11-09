@@ -481,7 +481,13 @@ async function api(path, options = {}) {
         try {
             const data = await response.json();
             if (typeof data.detail === "string") message = data.detail;
-            else if (Array.isArray(data.detail)) message = data.detail.map(item => item.msg).join(", ");
+            else if (Array.isArray(data.detail)) {
+                console.error("Validation error from server:", data.detail);
+                message = data.detail.map(item => {
+                    const field = Array.isArray(item.loc) ? item.loc.filter(part => part !== "body").join(".") : "";
+                    return field ? `${field}: ${item.msg}` : item.msg;
+                }).join(", ");
+            }
             else if (data.message) message = data.message;
         } catch {}
         throw new Error(message);
@@ -612,7 +618,7 @@ async function submitAuth(event) {
             let message = "Invalid username or password.";
             try {
                 const data = await response.json();
-                message = data.detail || message;
+                message = typeof data.detail === "string" ? data.detail : message;
             } catch {}
             throw new Error(message);
         }
