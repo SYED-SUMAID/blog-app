@@ -89,3 +89,4 @@ def get_user_profile(
 ):
 
     return current_user
+

@@ -1,18 +1,16 @@
-from sqlmodel import SQLModel, Field, UniqueConstraint
+from sqlmodel import SQLModel, Field
 
 
 class Follow(SQLModel, table=True):
 
-    __table_args__ = (
-        UniqueConstraint(
-            "follower_id",
-            "following_id",
-            name="unique_follow_relationship"
-        ),
-    )
+    __tablename__ = "userfollow"
 
     follow_id: int | None = Field(default=None, primary_key=True)
 
-    follower_id: int = Field(foreign_key="user.id")
+    follower_id: int = Field(
+        foreign_key="user.id"
+    )
 
-    following_id: int = Field(foreign_key="user.id")
+    following_id: int = Field(
+        foreign_key="user.id"
+    )
