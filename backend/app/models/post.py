@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlmodel import SQLModel, Field
 
@@ -20,9 +20,9 @@ class Post(SQLModel, table=True):
     image_path: str = Field(max_length=500)
 
     created_at: datetime = Field(
-        default_factory=datetime.utcnow
+        default_factory=lambda: datetime.now(timezone.utc)
     )
 
     updated_at: datetime = Field(
-        default_factory=datetime.utcnow
+        default_factory=lambda: datetime.now(timezone.utc)
     )

@@ -594,7 +594,7 @@ async function submitAuth(event) {
 
             await api("/user", {
                 method: "POST",
-                body: JSON.stringify({ username, email, password })
+                body: JSON.stringify({ name: username, username, email, password })
             });
 
             notify("Account created. You can now sign in.");
