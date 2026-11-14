@@ -12,3 +12,4 @@ class CommentResponse(BaseModel):
     text: str
     blog_id: int
     commenter_id: int
+    commenter_name: str

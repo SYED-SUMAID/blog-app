@@ -108,6 +108,8 @@ nav{height:95px;display:flex;align-items:center;justify-content:space-between;bo
 .blog-card .excerpt{color:var(--muted);font-size:17px;line-height:1.9;margin-bottom:24px;white-space:pre-line}
 .card-footer{border-top:1px solid var(--border);padding-top:16px;margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:10px}
 .author{color:var(--muted);font-size:11px}
+.byline{display:flex;align-items:center;gap:12px;color:var(--text);font-size:18px;font-weight:600}
+.avatar{width:40px;height:40px;border-radius:50%;background:var(--teal);color:var(--surface);display:inline-flex;align-items:center;justify-content:center;font-size:17px;font-weight:700}
 .card-actions{display:flex;align-items:center;gap:14px}
 .card-actions button{background:transparent;border:0;color:var(--teal);font-size:12px;font-weight:600}
 .card-actions button:hover{color:var(--red)}
@@ -714,7 +716,8 @@ function renderBlogs() {
         const id = getBlogId(blog);
         const title = escapeHTML(blog.title || "Untitled story");
         const content = escapeHTML(blog.content || "");
-        const authorId = escapeHTML(blog.author_id ?? "Unknown");
+      const authorName = escapeHTML(blog.author_name ?? "Unknown");
+      const authorInitial = escapeHTML((blog.author_name || "?").charAt(0).toUpperCase());
         const excerpt = content.length > 180 ? content.substring(0, 180) + "..." : content;
 
         return `
@@ -723,7 +726,7 @@ function renderBlogs() {
                 <h2>${title}</h2>
                 <p class="excerpt">${excerpt}</p>
                 <div class="card-footer">
-                    <span class="author">Author ID: ${authorId}</span>
+          <span class="byline"><span class="avatar">${authorInitial}</span>${authorName}</span>
                     <div class="card-actions">
                         <button onclick="openArticle(${Number(id)})">Read story →</button>
                     </div>
@@ -799,7 +802,7 @@ async function openArticle(blogId) {
 
         document.getElementById("articleTitle").textContent = blog.title || "Untitled story";
         document.getElementById("articleContent").textContent = blog.content || "";
-        document.getElementById("articleMeta").textContent = `Author ID: ${blog.author_id ?? "Unknown"}`;
+        document.getElementById("articleMeta").textContent = `Author ID:  ${blog.author_name ?? "Unknown"}`
 
         const isOwner = currentUser &&
             String(currentUser.user_id ?? currentUser.id) === String(blog.author_id);
@@ -845,7 +848,7 @@ async function loadComments(blogId) {
         }
 
         container.innerHTML = comments.map(comment => {
-            const author = comment.username ?? comment.user_id ?? comment.commenter_id ?? "User";
+            const author = comment.username ?? comment.user_id ?? comment.commenter_name ?? "User";
             const content = comment.content ?? comment.text ?? "";
 
             return `

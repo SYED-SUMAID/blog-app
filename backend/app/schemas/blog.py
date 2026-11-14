@@ -13,3 +13,4 @@ class BlogResponse(BaseModel):
     title: str
     content: str
     author_id: int
+    author_name: str

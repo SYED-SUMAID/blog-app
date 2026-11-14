@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session, select
+from sqlmodel import Session, text
 
 from app.database.connection import get_session
 from app.models.blog import Blog
@@ -9,6 +9,14 @@ from app.security.auth import get_current_user
 
 
 router = APIRouter()
+
+
+# Blog joined with the author's name
+BLOG_SQL = """
+    SELECT b.blog_id, b.title, b.content, b.author_id, u.name AS author_name
+    FROM blog b
+    JOIN "user" u ON u.id = b.author_id
+"""
 
 
 # Create a blog
@@ -29,20 +37,26 @@ def create_blog(
     session.commit()
     session.refresh(new_blog)
 
-    return new_blog
+    return {
+        "blog_id": new_blog.blog_id,
+        "title": new_blog.title,
+        "content": new_blog.content,
+        "author_id": new_blog.author_id,
+        "author_name": current_user.name
+    }
 
 
-# Get all blogs
+# Get all blogs (newest first)
 @router.get("/blogs", response_model=list[BlogResponse])
 def get_all_blogs(
     session: Session = Depends(get_session)
 ):
 
-    blogs = session.exec(
-        select(Blog)
-    ).all()
+    rows = session.exec(
+        text(BLOG_SQL + " ORDER BY b.blog_id DESC")
+    ).mappings().all()
 
-    return blogs
+    return [dict(row) for row in rows]
 
 
 # Get one blog
@@ -52,15 +66,17 @@ def get_blog(
     session: Session = Depends(get_session)
 ):
 
-    blog = session.get(Blog, blog_id)
+    row = session.exec(
+        text(BLOG_SQL + " WHERE b.blog_id = :blog_id").bindparams(blog_id=blog_id)
+    ).mappings().first()
 
-    if not blog:
+    if not row:
         raise HTTPException(
             status_code=404,
             detail="Blog not found"
         )
 
-    return blog
+    return dict(row)
 
 
 # Delete a blog

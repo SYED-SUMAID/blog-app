@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session, select
+from sqlmodel import Session, text
 
 from app.database.connection import get_session
 from app.models.comment import Comment
@@ -10,6 +10,16 @@ from app.security.auth import get_current_user
 
 
 router = APIRouter()
+
+
+# Comments of one blog joined with the commenter's name
+COMMENT_SQL = """
+    SELECT c.comment_id, c.text, c.blog_id, c.commenter_id, u.name AS commenter_name
+    FROM comment c
+    JOIN "user" u ON u.id = c.commenter_id
+    WHERE c.blog_id = :blog_id
+    ORDER BY c.comment_id
+"""
 
 
 # Add a comment
@@ -43,7 +53,13 @@ def add_comment(
     session.commit()
     session.refresh(new_comment)
 
-    return new_comment
+    return {
+        "comment_id": new_comment.comment_id,
+        "text": new_comment.text,
+        "blog_id": new_comment.blog_id,
+        "commenter_id": new_comment.commenter_id,
+        "commenter_name": current_user.name
+    }
 
 
 # Get all comments for a blog
@@ -64,8 +80,8 @@ def get_blog_comments(
             detail="Blog not found"
         )
 
-    comments = session.exec(
-        select(Comment).where(Comment.blog_id == blog_id)
-    ).all()
+    rows = session.exec(
+        text(COMMENT_SQL).bindparams(blog_id=blog_id)
+    ).mappings().all()
 
-    return comments
+    return [dict(row) for row in rows]
