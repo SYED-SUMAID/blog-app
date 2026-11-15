@@ -77,7 +77,7 @@ def unfollow_user(
 
     if not existing_follow:
         raise HTTPException(
-            status_code=404,
+            status_code=409,
             detail="You are not following this user"
         )
 

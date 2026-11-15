@@ -1,19 +1,25 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session, text
 
 from app.database.connection import get_session
 from app.models.blog import Blog
 from app.models.user import User
+from app.models.follow import Follow
 from app.schemas.blog import BlogCreate, BlogResponse
 from app.security.auth import get_current_user
-
 
 router = APIRouter()
 
 
 # Blog joined with the author's name
 BLOG_SQL = """
-    SELECT b.blog_id, b.title, b.content, b.author_id, u.name AS author_name
+    SELECT
+        b.blog_id,
+        b.title,
+        b.content,
+        b.author_id,
+        b.created_at,
+        u.name AS author_name
     FROM blog b
     JOIN "user" u ON u.id = b.author_id
 """
@@ -38,11 +44,12 @@ def create_blog(
     session.refresh(new_blog)
 
     return {
-        "blog_id": new_blog.blog_id,
-        "title": new_blog.title,
-        "content": new_blog.content,
-        "author_id": new_blog.author_id,
-        "author_name": current_user.name
+         "blog_id": new_blog.blog_id,
+         "title": new_blog.title,
+         "content": new_blog.content,
+         "author_id": new_blog.author_id,
+         "author_name": current_user.name,
+         "created_at": new_blog.created_at
     }
 
 
@@ -105,3 +112,47 @@ def delete_blog(
     session.commit()
 
     return {"message": "Blog deleted successfully"}
+
+# Following Feed
+@router.get("/feed", response_model=list[BlogResponse])
+def get_feed(
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=10, ge=1, le=50),
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+
+    FEED_SQL = """
+        SELECT
+            b.blog_id,
+            b.title,
+            b.content,
+            b.author_id,
+            b.created_at,
+            u.name AS author_name
+
+        FROM blog b
+
+        JOIN userfollow f
+            ON b.author_id = f.following_id
+
+        JOIN "user" u
+            ON u.id = b.author_id
+
+        WHERE f.follower_id = :follower_id
+
+        ORDER BY b.created_at DESC
+
+        LIMIT :limit
+        OFFSET :skip
+    """
+
+    rows = session.exec(
+        text(FEED_SQL).bindparams(
+            follower_id=current_user.id,
+            limit=limit,
+            skip=skip
+        )
+    ).mappings().all()
+
+    return [dict(row) for row in rows]
