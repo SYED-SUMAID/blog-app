@@ -1,11 +1,16 @@
 <!DOCTYPE html>
-<!DOCTYPE html>
 
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1, viewport-fit=cover" name="viewport"/>
 <title>Journal — Stories worth your time</title>
+<meta name="description" content="Journal: thoughtful stories and perspectives from a community of writers."/>
+<meta name="theme-color" content="#2f6853"/>
+<meta property="og:type" content="website"/><meta property="og:title" content="Journal — Stories worth your time"/><meta property="og:description" content="Thoughtful stories and perspectives from a community of writers."/>
+<meta name="twitter:card" content="summary"/>
+<meta name="journal-api-base" content=""/><!-- Set to your backend address when deploying, e.g. https://api.example.com -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f6853'/%3E%3Ctext x='16' y='23' font-size='20' text-anchor='middle' font-family='Georgia,serif' fill='%23f3f7ec'%3EJ%3C/text%3E%3C/svg%3E"/>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&amp;family=DM+Sans:wght@400;500;700&amp;family=Noto+Naskh+Arabic:wght@500;600&amp;family=Caveat:wght@500&amp;display=swap" rel="stylesheet"/>
 <style>
 :root{
@@ -28,7 +33,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--rust);outline-o
 /* hero */
 .hero{color:var(--ink);position:relative;min-height:100svh;overflow:hidden;display:flex;flex-direction:column;background:linear-gradient(#cdd5bf,#afba96 62%);--ink:#10241b;--muted:#34493e;--pill:rgba(255,255,255,.6);--btnbg:#10241b;--btnfg:#eef3e2;--note:rgba(255,255,255,.45);--rust:#a8431f}
 .nav{order:1}.copy{order:2}
-.art{order:3;display:block;width:100%%;flex:1 1 clamp(300px,42vh,480px);min-height:300px;max-height:560px;object-fit:cover;object-position:50%% 100%%;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 16%%);mask-image:linear-gradient(to bottom,transparent 0,#000 16%%)}
+.art{order:3;display:block;width:100%;flex:1 1 clamp(300px,42vh,480px);min-height:300px;max-height:560px;object-fit:cover;object-position:50% 100%;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 16%);mask-image:linear-gradient(to bottom,transparent 0,#000 16%)}
 .nav{position:relative;z-index:3;display:flex;justify-content:space-between;align-items:center;padding:22px clamp(20px,4vw,48px)}
 .logo{display:flex;align-items:center;gap:10px;font:500 25px var(--serif);letter-spacing:.01em}
 .mark{width:18px;height:18px;display:grid;grid-template-columns:1fr 1fr;gap:2px}
@@ -309,6 +314,14 @@ textarea.app-field{min-height:260px;resize:vertical}
 </a>
 </main>
 <main class="stories" hidden="" id="latest-stories">
+<div class="room-bar"><div class="room-left"><button class="room-menu" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="sideNav"><span></span><span></span><span></span></button><button class="room-home" type="button" onclick="document.getElementById('homeLogo').click()"><span aria-hidden="true">←</span> Journal</button></div><div class="room-actions"><button class="room-theme" type="button" onclick="document.getElementById('theme').click()">Theme</button><button class="room-write" type="button" onclick="document.getElementById('navWrite').click()">Write a story</button></div></div>
+<div class="side-backdrop" id="sideBackdrop" hidden=""></div>
+<aside class="side-nav" id="sideNav" aria-label="Menu" aria-hidden="true">
+<div class="side-head"><span class="side-title">Journal</span><button class="side-close" type="button" aria-label="Close menu">&times;</button></div>
+<nav><button type="button" data-side="home">Home</button><button type="button" data-side="all">All stories</button><button type="button" data-side="write">Write a story</button></nav>
+<p class="side-label">Topics</p><div class="side-topics" id="sideTopics"></div>
+<div class="side-foot"><button type="button" data-side="theme">Theme</button><button type="button" data-side="auth" id="sideAuth">Sign in</button></div>
+</aside>
 <div class="head"><p class="eyebrow2">Fresh from the community</p><h2>Latest <em>stories.</em></h2><p class="sub">Fresh writing from the Journal community. Read, respond, and share your own perspective.</p></div>
 <form class="blogs-search" id="blogSearch"><input aria-label="Search blogs" id="blogQuery" placeholder="Search stories, topics, writers…" type="search"/><button type="submit">Search</button></form><div class="bar2"><div aria-label="Filter by topic" class="chips" id="chips" role="group"></div><span id="count">Loading stories…</span></div>
 <div class="grid" id="grid"></div>
@@ -742,6 +755,142 @@ body.stories-page{--page:#eef4ea;--card:#fbfdf8;--ink:#10241b;--muted:#4b6054;--
   #latest-stories .chip{flex:none}
 }
 </style>
+<style id="hero-brand">
+/* Home page: larger logo and tagline */
+.nav .logo{font-size:clamp(32px,2vw + 18px,46px);gap:.4em;line-height:1}
+.nav .logo .mark{width:.7em;height:.7em;gap:.08em}
+.hero .eyebrow{font-size:clamp(13px,.5vw + 10px,17px);letter-spacing:.18em}
+.nav .links{gap:clamp(18px,3vw,40px)}
+.nav .links button{font-size:clamp(14px,.35vw + 12px,17px);font-weight:700;letter-spacing:.1em;color:#08150f}
+.nav .links button:hover{color:#2f6853}
+/* Write is not shown on the home nav (it stays in the page so the stories bar and footer can still use it) */
+.nav .links #navWrite{display:none}
+/* Sign out: readable green pill in both themes (an old rule forced black text on a dark maroon background) */
+.nav .links .nav-signout{background:#1f4d3a!important;color:#f3f7ec!important;border:1px solid rgba(243,247,236,.35)!important;border-radius:999px;padding:10px 18px;font-size:clamp(13px,.3vw + 11px,15px);font-weight:700;letter-spacing:.1em}
+.nav .links .nav-signout:hover{background:#2f6853!important;color:#f3f7ec!important}
+@media(max-width:520px){.nav .links button{font-size:11px}.nav .logo{font-size:28px}.hero .eyebrow{font-size:12.5px;letter-spacing:.1em}}
+</style>
+<style id="stories-theme">
+/* Stories page: warm charcoal feed like the reference. Must stay the last style block. */
+:root:has(body.stories-page){color-scheme:dark}
+:root:root:root body.stories-page{--page:#0a0a09;--card:#131311;--ink:#f3f1ed;--muted:#a9a59d;--hair:rgba(243,241,237,.12);--accent:#f3f1ed;--on-accent:#0a0a09;--rust:#f3f1ed;background:#0a0a09;color:var(--ink)}
+#latest-stories{max-width:clamp(820px,74vw,1280px);padding-inline:clamp(24px,4vw,64px)}
+#latest-stories .room-bar{position:sticky;top:0;z-index:20;display:flex;justify-content:space-between;align-items:center;padding:calc(.85rem + env(safe-area-inset-top,0px)) 0 .85rem;margin-bottom:clamp(2rem,5vw,3.5rem);background:rgba(10,10,9,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--hair)}
+.room-home{background:none;border:0;padding:.25rem 0;font:500 1.5rem var(--serif);color:var(--ink)}
+.room-home span{color:var(--muted);margin-right:.3rem}
+.room-write{background:none;border:1px solid var(--hair);color:var(--ink);border-radius:999px;padding:.55em 1.2em;font:700 .75rem var(--sans);letter-spacing:.1em;text-transform:uppercase;transition:background-color .2s,color .2s}
+.room-write:hover{background:var(--ink);color:var(--on-accent)}
+.room-home:focus-visible,.room-write:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+#latest-stories .head h2{color:var(--ink)}
+#latest-stories .head h2 em{color:var(--ink);font-style:italic}
+#latest-stories .eyebrow2{color:var(--muted);letter-spacing:.2em}
+#latest-stories .head .sub{color:var(--muted)}
+#latest-stories .blogs-search input{background:var(--card)!important;color:var(--ink)!important;border:1px solid var(--hair)!important;border-radius:.75rem}
+#latest-stories .blogs-search input::placeholder{color:var(--muted)}
+#latest-stories .blogs-search input:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+#latest-stories .blogs-search button{background:transparent!important;color:var(--ink)!important;border:1px solid var(--hair)!important;border-radius:.75rem}
+#latest-stories .bar2{gap:0;margin:2rem 0 0;padding:0;border:0;border-bottom:1px solid var(--hair)}
+#latest-stories .bar2 span#count{order:-1;padding:0 0 .6rem;font:500 .8rem var(--sans);color:var(--muted)!important}
+#latest-stories .chips{gap:0 1.75rem;margin-bottom:-1px}
+#latest-stories .chip,#latest-stories .chip:hover,#latest-stories .chip[aria-pressed="true"]{background:transparent!important;border:0!important;border-bottom:1px solid transparent!important;border-radius:0;padding:.75em 0;font:500 .92rem var(--sans);letter-spacing:0;text-transform:none;color:var(--muted)!important}
+#latest-stories .chip:hover{color:var(--ink)!important}
+#latest-stories .chip[aria-pressed="true"]{color:var(--ink)!important;border-bottom-color:var(--ink)!important}
+#latest-stories .grid{display:block}
+#latest-stories .card,#latest-stories .card:hover{display:grid;grid-template-columns:minmax(0,1fr) clamp(6rem,24vw,15rem);grid-template-areas:"body media";align-items:start;gap:0 clamp(1.25rem,4vw,3.5rem);min-block-size:0;overflow:visible;padding:clamp(1.5rem,2.6vw,2.25rem) 0;background:transparent!important;border:0!important;border-bottom:1px solid var(--hair)!important;border-radius:0;box-shadow:none!important;transform:none}
+#latest-stories .media{grid-area:media;position:relative;aspect-ratio:3/2;overflow:hidden;border-radius:.3rem;background:var(--card)}
+#latest-stories .ph{position:absolute;inset:0;display:grid;place-items:center;background:linear-gradient(160deg,#171815,#0e0f0d)}
+#latest-stories .ph i{font:700 clamp(1.8rem,5vw,3rem)/1 var(--sans);font-style:normal;color:rgba(243,241,237,.28)}
+#latest-stories .media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .7s cubic-bezier(.2,.7,.2,1)}
+#latest-stories .card:hover .media img{transform:scale(1.04)}
+#latest-stories .body{grid-area:body;display:flex;flex-direction:column;min-width:0}
+#latest-stories .card .meta{order:-2;margin:0 0 .75rem;padding:0;border:0!important;gap:.6rem}
+#latest-stories .card .av{flex:none;width:1.5rem;height:1.5rem;display:grid;place-items:center;border:0;border-radius:50%;background:#e9e5dc!important;color:#0a0a09!important;font:700 .72rem/1 var(--sans)}
+#latest-stories .card .who{flex-direction:row;align-items:baseline;gap:.5rem}
+#latest-stories .card .who b{font:700 .85rem var(--sans);color:var(--ink)!important}
+#latest-stories .card .who small{font:400 .8rem var(--sans);color:var(--muted)!important}
+#latest-stories .card .who small::before{content:"\00b7";margin-right:.5rem}
+#latest-stories .card .more{display:none}
+#latest-stories .card h4{margin:0 0 .5rem;font:700 clamp(1.3rem,1.05rem + .9vw,1.9rem)/1.2 var(--sans);color:var(--ink)!important}
+#latest-stories .card h4 .lnk{color:var(--ink)!important}
+#latest-stories .card p{margin:0;font-size:clamp(1rem,.95rem + .2vw,1.1rem);line-height:1.6;color:var(--muted)!important;-webkit-line-clamp:2}
+#latest-stories .kicker{order:3;display:flex;align-items:center;gap:.6rem;margin:1.1rem 0 0;font:500 .8rem var(--sans);color:var(--muted)}
+#latest-stories .card .tagc{margin:0;padding:.3em .85em;border-radius:999px;background:rgba(243,241,237,.08)!important;color:var(--ink)!important;font:500 .8rem var(--sans);letter-spacing:0;text-transform:none}
+#latest-stories .card .tagc::before{content:none}
+#latest-stories .card:has(.lnk:focus-visible){outline:2px solid var(--ink);outline-offset:.4rem;border-radius:.4rem}
+/* Heading: simple bold sans */
+#latest-stories .head h2{font:700 clamp(2.2rem,1.6rem + 2vw,3.4rem)/1.05 var(--sans);letter-spacing:-.025em}
+#latest-stories .head h2 em{font-style:normal;font-weight:700;color:var(--ink)}
+/* Sage green lining */
+:root:root:root body.stories-page{--line-strong:#9cc4ab;--line:rgba(143,184,161,.3)}
+#latest-stories .room-bar{border-bottom-color:var(--line)}
+.room-write{border-color:var(--line)}
+.room-write:hover{border-color:var(--line-strong)}
+#latest-stories .blogs-search input{border-color:var(--line)!important}
+#latest-stories .blogs-search input:focus-visible{outline-color:var(--line-strong)}
+#latest-stories .blogs-search button{border-color:var(--line)!important}
+#latest-stories .bar2{border-bottom-color:var(--line)}
+#latest-stories .chip[aria-pressed="true"]{border-bottom-color:var(--line-strong)!important}
+#latest-stories .card,#latest-stories .card:hover{border-bottom-color:var(--line)!important}
+#latest-stories .media{box-shadow:inset 0 0 0 1px var(--line)}
+#latest-stories .card .tagc{box-shadow:inset 0 0 0 1px var(--line);background:transparent!important}
+/* Bigger green wordmark, stronger green lining */
+:root:root:root body.stories-page{--line:rgba(143,184,161,.55);--line-soft:rgba(143,184,161,.38);--line-strong:#a6cdb3}
+.room-home{font-size:clamp(2.75rem,2.1rem + 2vw,4rem);line-height:1;color:var(--line-strong)}
+.room-home span{color:var(--line-strong)}
+#latest-stories .room-bar{border-bottom-width:2px}
+#latest-stories .bar2{border-bottom-width:2px}
+#latest-stories .chips{margin-bottom:-2px}
+#latest-stories .chip,#latest-stories .chip:hover,#latest-stories .chip[aria-pressed="true"]{border-bottom-width:2px!important}
+#latest-stories .card,#latest-stories .card:hover{border-bottom-width:2px!important;border-bottom-color:var(--line-soft)!important}
+#latest-stories .blogs-search input,#latest-stories .blogs-search button{border-width:1.5px!important}
+.room-write{border-width:1.5px}
+.room-actions{display:flex;align-items:center;gap:.6rem}
+.room-theme{background:none;border:1.5px solid var(--line);color:var(--ink);border-radius:999px;padding:.55em 1.2em;font:700 .75rem var(--sans);letter-spacing:.1em;text-transform:uppercase;transition:background-color .2s,color .2s}
+.room-theme:hover{background:var(--ink);color:var(--on-accent)}
+.room-theme:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+/* Light theme for the stories page (follows the Theme button): white background, black text, green lining */
+:root[data-theme="light"]:has(body.stories-page){color-scheme:light}
+:root:root:root[data-theme="light"] body.stories-page{--page:#fdfcf9;--card:#f3f1ea;--ink:#141412;--muted:#5d5951;--hair:rgba(20,20,18,.13);--accent:#141412;--on-accent:#fdfcf9;--rust:#141412;--line:rgba(47,104,83,.55);--line-soft:rgba(47,104,83,.34);--line-strong:#2f6853;background:#fdfcf9;color:#141412}
+:root[data-theme="light"] #latest-stories .room-bar{background:rgba(253,252,249,.92)}
+:root[data-theme="light"] #latest-stories .ph{background:linear-gradient(160deg,#eceae1,#dfdcd1)}
+:root[data-theme="light"] #latest-stories .ph i{color:rgba(20,20,18,.2)}
+:root[data-theme="light"] #latest-stories .card .av{background:#141412!important;color:#fdfcf9!important}
+/* Sign-in box and toast keep the app palette (they sit inside body.stories-page, which is near-black) */
+:root[data-theme="dark"] .app-modal,:root[data-theme="dark"] .app-toast{--page:#0f1b16;--card:#1a2b25;--ink:#e9f0df;--muted:#b0c1b4;--hair:rgba(233,240,223,.22);--rust:#cfe3c0}
+:root[data-theme="light"] .app-modal,:root[data-theme="light"] .app-toast{--page:#e5ecdb;--card:#f4f7ec;--ink:#10241b;--muted:#3a4f44;--hair:rgba(16,36,27,.22);--rust:#a8431f}
+/* Sidebar */
+.room-left{display:flex;align-items:center;gap:1rem}
+.room-menu{display:grid;gap:5px;align-content:center;width:2.9rem;height:2.9rem;padding:0 .72rem;background:none;border:1.5px solid var(--line);border-radius:.75rem;cursor:pointer}
+.room-menu span{display:block;height:2px;border-radius:2px;background:var(--ink)}
+.room-menu:hover{background:var(--card)}
+.room-menu:focus-visible,.side-close:focus-visible,.side-nav button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.side-backdrop{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.55)}
+.side-backdrop[hidden]{display:none}
+.side-nav{position:fixed;top:0;bottom:0;left:0;z-index:70;width:min(320px,86vw);display:flex;flex-direction:column;overflow-y:auto;padding:calc(1.25rem + env(safe-area-inset-top,0px)) 1.5rem 1.5rem;background:var(--page);border-right:2px solid var(--line);transform:translateX(-102%);visibility:hidden;transition:transform .28s cubic-bezier(.2,.7,.2,1),visibility .28s}
+.side-nav.open{transform:none;visibility:visible}
+.side-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem}
+.side-title{font:500 2rem var(--serif);color:var(--line-strong)}
+.side-close{background:none;border:0;color:var(--ink);font-size:2rem;line-height:1;cursor:pointer}
+.side-nav button[data-side],.side-topics button{display:block;width:100%;text-align:left;padding:.75rem .25rem;background:none;border:0;border-bottom:1px solid var(--hair);color:var(--ink);font:600 1rem var(--sans);cursor:pointer}
+.side-nav button[data-side]:hover,.side-topics button:hover{color:var(--line-strong)}
+.side-label{margin:1.75rem 0 .4rem;font:700 .72rem var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.side-topics button{font-weight:500;color:var(--muted)}
+.side-topics button[aria-pressed="true"]{color:var(--ink);font-weight:700}
+.side-foot{margin-top:auto;padding-top:1.5rem}
+@media(max-width:700px){.room-actions{display:none}}
+@media(prefers-reduced-motion:reduce){.side-nav{transition:none}}
+.skel{display:grid;grid-template-columns:minmax(0,1fr) clamp(6rem,24vw,15rem);gap:1.5rem;padding:2rem 0;border-bottom:2px solid var(--line-soft)}
+.skel i{display:block;height:1rem;margin:.9rem 0;border-radius:.4rem;background:var(--hair);animation:skel 1.4s ease-in-out infinite}
+.skel i.s{width:60%}
+.skel b{aspect-ratio:3/2;border-radius:.3rem;background:var(--hair);animation:skel 1.4s ease-in-out infinite}
+@keyframes skel{50%{opacity:.4}}
+.ghost-btn{margin-top:1rem;background:transparent;border:1.5px solid var(--line);color:var(--ink);border-radius:999px;padding:.6em 1.4em;font:700 .8rem var(--sans);letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:background-color .2s,color .2s}
+.ghost-btn:hover{background:var(--ink);color:var(--on-accent)}
+.ghost-btn:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.more-stories{display:block;margin:2rem auto 0}
+@media (prefers-reduced-motion:reduce){.skel i,.skel b{animation:none}}
+@media (prefers-reduced-motion:reduce){#latest-stories .media img{transition:none}#latest-stories .card:hover .media img{transform:none}}
+</style>
 <script>
 (() => {
   "use strict";
@@ -749,10 +898,15 @@ body.stories-page{--page:#eef4ea;--card:#fbfdf8;--ink:#10241b;--muted:#4b6054;--
   // The Docker Compose setup exposes FastAPI on port 8000. Override this
   // value with window.JOURNAL_API_BASE before this script if your API is elsewhere.
   const API_PROTOCOL = location.protocol === "file:" ? "http:" : location.protocol;
-  const API_BASE = (window.JOURNAL_API_BASE || `${API_PROTOCOL}//${location.hostname || "127.0.0.1"}:8000`).replace(/\/$/, "");
+  const API_BASE = (window.JOURNAL_API_BASE || document.querySelector('meta[name="journal-api-base"]')?.content || `${API_PROTOCOL}//${location.hostname || "127.0.0.1"}:8000`).replace(/\/$/, "");
   const $ = (id) => document.getElementById(id);
+  const store = {
+    get(k) { try { return window.localStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { window.localStorage.setItem(k, v); } catch {} },
+    del(k) { try { window.localStorage.removeItem(k); } catch {} }
+  };
 
-  let token = localStorage.getItem("access_token") || "";
+  let token = store.get("access_token") || "";
   let currentUser = null;
   let blogs = [];
   let currentBlog = null;
@@ -806,6 +960,13 @@ body.stories-page{--page:#eef4ea;--card:#fbfdf8;--ink:#10241b;--muted:#4b6054;--
   }
   function blogId(blog) { return blog.blog_id ?? blog.id; }
   function userId(user) { return user?.id ?? user?.user_id; }
+  // Author name: use whichever field the API sends; for your own stories fall back to the signed-in username.
+  function authorName(blog) {
+    const direct = blog.author_name || blog.author_username || blog.username || blog.author?.username || blog.author?.name || blog.user?.username || blog.owner?.username || (typeof blog.author === "string" ? blog.author : "");
+    if (direct) return String(direct);
+    if (currentUser && blog.author_id != null && String(blog.author_id) === String(userId(currentUser))) return String(currentUser.username || currentUser.name || "");
+    return "";
+  }
   function showToast(message) {
     const el = $("appToast");
     el.textContent = message;
@@ -864,7 +1025,7 @@ body.stories-page{--page:#eef4ea;--card:#fbfdf8;--ink:#10241b;--muted:#4b6054;--
   function clearSession() {
     token = "";
     currentUser = null;
-    localStorage.removeItem("access_token");
+    store.del("access_token");
     likedBlogs.clear();
     followedUsers.clear();
   }
@@ -873,14 +1034,14 @@ body.stories-page{--page:#eef4ea;--card:#fbfdf8;--ink:#10241b;--muted:#4b6054;--
   }
   function loadLocalActionState() {
     try {
-      likedBlogs = new Set(JSON.parse(localStorage.getItem(stateKey("journal_likes")) || "[]").map(String));
-      followedUsers = new Set(JSON.parse(localStorage.getItem(stateKey("journal_follows")) || "[]").map(String));
+      likedBlogs = new Set(JSON.parse(store.get(stateKey("journal_likes")) || "[]").map(String));
+      followedUsers = new Set(JSON.parse(store.get(stateKey("journal_follows")) || "[]").map(String));
     } catch { likedBlogs = new Set(); followedUsers = new Set(); }
   }
   function saveLocalActionState() {
     if (!currentUser) return;
-    localStorage.setItem(stateKey("journal_likes"), JSON.stringify([...likedBlogs]));
-    localStorage.setItem(stateKey("journal_follows"), JSON.stringify([...followedUsers]));
+    store.set(stateKey("journal_likes"), JSON.stringify([...likedBlogs]));
+    store.set(stateKey("journal_follows"), JSON.stringify([...followedUsers]));
   }
 
   function updateNav() {
@@ -936,7 +1097,7 @@ body.stories-page{--page:#eef4ea;--card:#fbfdf8;--ink:#10241b;--muted:#4b6054;--
   }
   async function refreshBlogs() {
     const grid = $("grid");
-    grid.innerHTML = `<div class="connection-note">Loading stories from your Journal backend…</div>`;
+    grid.innerHTML = Array.from({ length: 4 }, () => '<div class="skel" aria-hidden="true"><div><i></i><i></i><i class="s"></i></div><b></b></div>').join("");
     $("count").textContent = "Loading…";
     try {
       const data = await api("/blogs");
@@ -945,7 +1106,8 @@ body.stories-page{--page:#eef4ea;--card:#fbfdf8;--ink:#10241b;--muted:#4b6054;--
     } catch (error) {
       blogs = [];
       $("count").textContent = "Not connected";
-      grid.innerHTML = `<div class="connection-note"><b>Stories could not be loaded.</b><br>${esc(error.message)}</div>`;
+      grid.innerHTML = `<div class="connection-note"><b>Stories could not be loaded.</b><br>${esc(error.message)}<br><button class="ghost-btn" id="retryStories" type="button">Try again</button></div>`;
+      $("retryStories").addEventListener("click", refreshBlogs);
     }
   }
 function pastel(name) {
@@ -954,52 +1116,82 @@ function pastel(name) {
     for (const ch of String(name || "")) n = (n * 31 + ch.charCodeAt(0)) >>> 0;
     return colours[n % colours.length];
   }
+  const PAGE_SIZE = 8;
+  let storyLimit = PAGE_SIZE, storyKey = "";
   function renderBlogs() {
     const grid = $("grid");
     // The filter bar always lists every category so it stays stable once the backend supplies them.
     const present = CATEGORIES;
     const filtered = blogs.filter(blog => {
       const category = categoryOf(blog);
-      const haystack = `${blog.title || ""} ${storyText(blog)} ${blog.author_name || ""} ${category}`.toLowerCase();
+      const haystack = `${blog.title || ""} ${storyText(blog)} ${authorName(blog)} ${category}`.toLowerCase();
       return (activeFilter === "All" || activeFilter === category) && haystack.includes(searchTerm);
     });
     $("chips").innerHTML = ["All", ...present].map(category =>
       `<button class="chip" type="button" data-filter="${category}" aria-pressed="${activeFilter === category}">${category}</button>`
     ).join("");
     $("count").textContent = `${filtered.length} ${filtered.length === 1 ? "story" : "stories"}`;
+    const key = `${activeFilter}|${searchTerm}`;
+    if (key !== storyKey) { storyKey = key; storyLimit = PAGE_SIZE; }
     if (!filtered.length) {
       grid.innerHTML = blogs.length
         ? `<p class="none">${activeFilter === "All" ? "No stories match your search. Try another word." : `No ${esc(activeFilter)} stories match yet.`}</p>`
         : `<p class="none">No stories have been published yet. Be the first to share one.</p>`;
       return;
     }
-    const card = (blog) => {
+    const card = (blog, i) => {
       const id = Number(blogId(blog));
       const rawTitle = plain(blog.title).trim();
       const title = bidi(esc(rawTitle || "Untitled story"));
       const body = withoutTitle(plain(storyText(blog)), rawTitle).replace(/\s+/g, " ");
       const excerpt = bidi(esc(body.length > 220 ? body.slice(0, 220).replace(/\s+\S*$/, "") + "…" : body));
-      const author = esc(blog.author_name || "Journal member");
-      const initial = esc((blog.author_name || "?").charAt(0).toUpperCase());
+      const authorRaw = authorName(blog);
+      const author = esc(authorRaw || "Journal member");
+      const initial = esc((authorRaw || "J").charAt(0).toUpperCase());
       const minutes = Math.max(1, Math.ceil(storyText(blog).trim().split(/\s+/).filter(Boolean).length / 220));
+      const d = new Date(blog.created_at || blog.published_at || blog.date || "");
+      const when = isNaN(d) ? "" : d.toLocaleDateString("en", { month: "short", day: "numeric", year: "numeric" });
+      const cat = esc(categoryOf(blog));
+      // Cover image: the backend can send image_url / cover_image / image / thumbnail.
+      const src = blog.image_url || blog.cover_image || blog.image || blog.thumbnail || "";
       return `<article class="card">
-        <span class="tagc">${esc(categoryOf(blog))}</span>
-        <h4><button class="lnk" type="button" data-open-blog="${id}">${title}</button></h4>
-        <p>${excerpt}</p>
-        <div class="meta"><span class="av">${initial}</span><span class="who"><b>${author}</b><small>${minutes} min read</small></span>
-        <button class="more" type="button" data-open-blog="${id}">Read story →</button></div>
+        <div class="media"><span class="ph" aria-hidden="true"><i>${cat.charAt(0)}</i></span>${src ? `<img src="${esc(src)}" alt="" loading="lazy" decoding="async" onerror="this.remove()">` : ""}</div>
+        <div class="body">
+          <div class="kicker"><span class="tagc">${cat}</span><span aria-hidden="true">·</span><span>${minutes} min read</span></div>
+          <h4><button class="lnk" type="button" data-open-blog="${id}">${title}</button></h4>
+          <p>${excerpt}</p>
+          <div class="meta"><span class="av">${initial}</span><span class="who"><b>${author}</b>${when ? `<small>${when}</small>` : ""}</span>
+          <button class="more" type="button" data-open-blog="${id}">Read →</button></div>
+        </div>
       </article>`;
     };
-    grid.innerHTML = filtered.map(card).join("");
+    grid.innerHTML = filtered.slice(0, storyLimit).map(card).join("") +
+      (filtered.length > storyLimit ? `<button class="ghost-btn more-stories" id="moreStories" type="button">Load more stories (${filtered.length - storyLimit} left)</button>` : "");
   }
 
   function openAuth(mode = "login") {
     authMode = mode;
+    authReturnFocus = document.activeElement;
     updateAuthForm();
     $("authModal").classList.remove("hidden");
     setTimeout(() => $("authUsername").focus(), 50);
   }
-  function closeAuth() { $("authModal").classList.add("hidden"); }
+  let authReturnFocus = null;
+  function closeAuth() {
+    $("authModal").classList.add("hidden");
+    if (authReturnFocus && authReturnFocus.focus) authReturnFocus.focus();
+  }
+  $("authModal").setAttribute("role", "dialog");
+  $("authModal").setAttribute("aria-modal", "true");
+  $("authModal").addEventListener("keydown", (e) => {
+    if (e.key === "Escape") { closeAuth(); return; }
+    if (e.key !== "Tab") return;
+    const items = [...$("authModal").querySelectorAll("button,input,a[href],select,textarea")].filter((el) => !el.disabled && el.offsetParent !== null);
+    if (!items.length) return;
+    const first = items[0], last = items[items.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
   function updateAuthForm() {
     const registering = authMode === "register";
     $("authTitle").textContent = registering ? "Join the Journal." : "Welcome back.";
@@ -1049,7 +1241,7 @@ function pastel(name) {
         if (!response.ok) throw new Error(data.detail || "Invalid username or password.");
         if (!data.access_token) throw new Error("The API did not return an access token.");
         token = data.access_token;
-        localStorage.setItem("access_token", token);
+        store.set("access_token", token);
         await loadMe();
         closeAuth();
         updateNav();
@@ -1111,6 +1303,7 @@ function pastel(name) {
     $("articlePage").classList.remove("hidden");
     $("latest-stories").hidden = true;
     $("editorPanel").classList.add("hidden");
+    if (location.hash !== `#story-${id}`) { try { history.pushState({ journalPage: "story" }, "", `#story-${id}`); } catch {} }
     $("articleTitle").textContent = "Loading story…";
     $("articleContent").textContent = "";
     $("articleMeta").textContent = "";
@@ -1123,7 +1316,7 @@ function pastel(name) {
       $("articleTitle").innerHTML = bidi(esc(shownTitle || "Untitled story"));
       document.querySelector(".article-kicker").textContent = categoryOf(blog);
       $("articleContent").textContent = withoutTitle(plain(storyText(blog)), shownTitle);
-      $("articleMeta").textContent = `By ${blog.author_name || "Journal member"}`;
+      $("articleMeta").textContent = `By ${authorName(blog) || "Journal member"}`;
       const ownStory = currentUser && String(userId(currentUser)) === String(blog.author_id);
       $("deleteButton").classList.toggle("hidden", !ownStory);
       updateArticleActions();
@@ -1139,7 +1332,10 @@ function pastel(name) {
     const author = String(currentBlog.author_id);
     $("likeButton").textContent = likedBlogs.has(id) ? "♥ Liked" : "♡ Like";
     $("followButton").textContent = followedUsers.has(author) ? "Following" : "Follow author";
-    $("followButton").classList.toggle("hidden", !!currentUser && String(userId(currentUser)) === author);
+    // Authors see Delete on their own story; everyone else sees Follow.
+    const ownStory = !!currentUser && String(userId(currentUser)) === author;
+    $("deleteButton").classList.toggle("hidden", !ownStory);
+    $("followButton").classList.toggle("hidden", ownStory);
   }
   async function loadComments(id) {
     try {
@@ -1149,7 +1345,7 @@ function pastel(name) {
         return;
       }
       $("commentsList").innerHTML = comments.map(comment =>
-        `<div class="comment-item"><b>${esc(comment.commenter_name || "Journal member")}</b><p>${esc(comment.text || "")}</p></div>`
+        `<div class="comment-item"><b>${esc(comment.commenter_name || comment.username || comment.author_name || "Journal member")}</b><p>${esc(comment.text || "")}</p></div>`
       ).join("");
     } catch (error) {
       $("commentsList").innerHTML = `<p class="app-status">${esc(error.message)}</p>`;
@@ -1253,6 +1449,8 @@ function pastel(name) {
   if (storyDoor) storyDoor.addEventListener("click", async e => { e.preventDefault(); showStories(); await refreshBlogs(); });
   $("homeLogo").addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); showHome(); } });
   window.addEventListener("popstate", () => {
+    const storyHash = location.hash.match(/^#story-(.+)$/);
+    if (storyHash) { showStories({ navigate: false }); openArticle(storyHash[1]); return; }
     if (location.hash === "#stories") { showStories({ navigate: false }); refreshBlogs(); }
     else showHome({ navigate: false });
   });
@@ -1280,7 +1478,11 @@ function pastel(name) {
     $("wordCount").textContent = `${words} words`;
   });
   $("cancelEditor").addEventListener("click", () => $("editorPanel").classList.add("hidden"));
-  $("backToStories").addEventListener("click", async () => { showStories(); await refreshBlogs(); });
+  $("grid").addEventListener("click", (e) => { if (e.target.closest("#moreStories")) { storyLimit += PAGE_SIZE; renderBlogs(); } });
+  $("backToStories").addEventListener("click", async () => {
+    if (/^#story-/.test(location.hash)) { try { history.pushState({ journalPage: "stories" }, "", "#stories"); } catch {} }
+    showStories(); await refreshBlogs();
+  });
   $("commentForm").addEventListener("submit", postComment);
   $("likeButton").addEventListener("click", toggleLike);
   $("followButton").addEventListener("click", toggleFollow);
@@ -1290,11 +1492,55 @@ function pastel(name) {
   $("authModal").addEventListener("click", e => { if (e.target === $("authModal")) closeAuth(); });
   $("switchAuth").addEventListener("click", () => { authMode = authMode === "login" ? "register" : "login"; updateAuthForm(); });
   $("authForm").addEventListener("submit", submitAuth);
+  // Stories sidebar: opened with the menu button, mirrors the topic chips and the main actions.
+  const sideNav = $("sideNav"), sideBackdrop = $("sideBackdrop"), sideMenu = document.querySelector(".room-menu");
+  function setSide(open) {
+    sideNav.classList.toggle("open", open);
+    sideNav.setAttribute("aria-hidden", String(!open));
+    sideBackdrop.hidden = !open;
+    sideMenu.setAttribute("aria-expanded", String(open));
+    if (!open) return;
+    $("sideAuth").textContent = currentUser ? "Sign out" : "Sign in";
+    const box = $("sideTopics");
+    box.innerHTML = "";
+    document.querySelectorAll("#latest-stories .chip").forEach((chip) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = chip.textContent.trim();
+      b.setAttribute("aria-pressed", chip.getAttribute("aria-pressed") || "false");
+      b.addEventListener("click", () => { chip.click(); setSide(false); });
+      box.appendChild(b);
+    });
+  }
+  sideMenu.addEventListener("click", () => setSide(true));
+  sideBackdrop.addEventListener("click", () => setSide(false));
+  sideNav.querySelector(".side-close").addEventListener("click", () => setSide(false));
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") setSide(false); });
+  sideNav.querySelectorAll("[data-side]").forEach((btn) => btn.addEventListener("click", () => {
+    const act = btn.getAttribute("data-side");
+    setSide(false);
+    if (act === "home") $("homeLogo").click();
+    else if (act === "write") $("navWrite").click();
+    else if (act === "theme") $("theme").click();
+    else if (act === "auth") $(currentUser ? "signOutButton" : "authNavButton").click();
+    else if (act === "all") { const first = document.querySelector("#latest-stories .chip"); if (first) first.click(); }
+  }));
+
+  // Theme: use the saved choice, else follow the system, so the stories page and home page always agree.
+  (function initTheme() {
+    const root = document.documentElement;
+    if (root.getAttribute("data-theme")) return;
+    const saved = store.get("journal_theme");
+    const dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    root.setAttribute("data-theme", saved === "light" || saved === "dark" ? saved : (dark ? "dark" : "light"));
+  })();
   $("theme").addEventListener("click", () => {
     const root = document.documentElement;
     const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     const current = root.getAttribute("data-theme") || (systemDark ? "dark" : "light");
-    root.setAttribute("data-theme", current === "dark" ? "light" : "dark");
+    const next = current === "dark" ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    store.set("journal_theme", next);
     $("theme").blur(); // drop the focus ring left on the button after a mouse click
   });
 
@@ -1331,8 +1577,9 @@ function pastel(name) {
   // Initial session restoration. Blog content is fetched only when the stories
   // section is opened, so the artwork-led homepage stays exactly as designed.
   updateAuthForm();
-  if (location.hash === "#stories") showStories({ navigate: false });
-  loadMe().then(() => { if (location.hash === "#stories") refreshBlogs(); });
+  const initialStory = location.hash.match(/^#story-(.+)$/);
+  if (location.hash === "#stories" || initialStory) showStories({ navigate: false });
+  loadMe().then(() => { if (initialStory) openArticle(initialStory[1]); else if (location.hash === "#stories") refreshBlogs(); });
 })();
 </script></body>
 </html>
