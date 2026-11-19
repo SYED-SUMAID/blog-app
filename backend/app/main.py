@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
+import socket
 # Import database functions
 from app.database.connection import create_db_and_tables
 
@@ -56,3 +56,10 @@ app.include_router(follows.router)
 @app.get("/")
 def home():
     return {"message": "Blog API is running"}
+
+@app.get("/health")
+def health_check():
+    return {
+        "status": "healthy",
+        "instance": socket.gethostname()
+    }
