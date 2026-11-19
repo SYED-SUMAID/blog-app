@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field, UniqueConstraint
 
 
 class Follow(SQLModel, table=True):
@@ -14,3 +14,10 @@ class Follow(SQLModel, table=True):
     following_id: int = Field(
         foreign_key="user.id"
     )
+__table_args__ = (
+    UniqueConstraint(
+        "follower_id",
+        "following_id",
+        name="unique_user_follow"
+    ),
+)    

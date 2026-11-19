@@ -15,4 +15,5 @@ class BlogResponse(SQLModel):
     title: str
     content: str
     author_id: int
+    author_name: str
     created_at: datetime
