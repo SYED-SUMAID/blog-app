@@ -1,3 +1,4 @@
+
 services:
 
   # FastAPI Backend
@@ -12,14 +13,25 @@ services:
     expose:
       - "8000"
 
-    depends_on:
-      db:
-        condition: service_healthy
-
     volumes:
       - ./backend:/app
 
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+    depends_on:
+      db:
+        condition: service_healthy
 
     networks:
       - blog-network
@@ -45,10 +57,13 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"
       interval: 5s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
     networks:
       - blog-network
@@ -71,16 +86,16 @@ services:
     depends_on:
       backend:
         condition: service_healthy
-        
+
     networks:
       - blog-network
 
     restart: unless-stopped
 
 
-  # Frontend
+  # Frontend Nginx Server
   frontend:
-    image: nginx:alpine
+    image: nginx:1.28-alpine
 
     container_name: blog-frontend
 
@@ -96,12 +111,12 @@ services:
     restart: unless-stopped
 
 
-# Persistent Storage
+# Persistent Database Storage
 volumes:
   postgres_data:
 
 
-# Custom Network
+# Shared Network
 networks:
   blog-network:
     driver: bridge
