@@ -56,15 +56,19 @@ def create_blog(
 # Get all blogs (newest first)
 @router.get("/blogs", response_model=list[BlogResponse])
 def get_all_blogs(
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=10, ge=1, le=50),
     session: Session = Depends(get_session)
 ):
-
     rows = session.exec(
-        text(BLOG_SQL + " ORDER BY b.blog_id DESC")
+        text(
+            BLOG_SQL +
+            " ORDER BY b.blog_id DESC LIMIT :limit OFFSET :skip"
+        ),
+        {"limit": limit, "skip": skip}
     ).mappings().all()
 
     return [dict(row) for row in rows]
-
 
 # Get one blog
 @router.get("/blog/{blog_id}", response_model=BlogResponse)
