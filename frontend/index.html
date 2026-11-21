@@ -325,6 +325,7 @@ textarea.app-field{min-height:260px;resize:vertical}
 <div class="head"><p class="eyebrow2">Fresh from the community</p><h2>Latest <em>stories.</em></h2><p class="sub">Fresh writing from the Journal community. Read, respond, and share your own perspective.</p></div>
 <form class="blogs-search" id="blogSearch"><input aria-label="Search blogs" id="blogQuery" placeholder="Search stories, topics, writers…" type="search"/><button type="submit">Search</button></form><div class="bar2"><div aria-label="Filter by topic" class="chips" id="chips" role="group"></div><span id="count">Loading stories…</span></div>
 <div class="grid" id="grid"></div>
+<nav class="pager" id="pager" aria-label="Pagination" hidden></nav>
 </main>
 <section aria-labelledby="editorHeading" class="app-panel hidden" id="editorPanel">
 <h2 id="editorHeading">Share a story.</h2>
@@ -890,6 +891,27 @@ body.stories-page{--page:#eef4ea;--card:#fbfdf8;--ink:#10241b;--muted:#4b6054;--
 .more-stories{display:block;margin:2rem auto 0}
 @media (prefers-reduced-motion:reduce){.skel i,.skel b{animation:none}}
 @media (prefers-reduced-motion:reduce){#latest-stories .media img{transition:none}#latest-stories .card:hover .media img{transform:none}}
+/* Pagination: pill buttons with the sage lining, same tokens as the room bar */
+#latest-stories .bar2{scroll-margin-top:5rem}
+.pager{display:flex;align-items:center;justify-content:center;gap:.75rem;flex-wrap:wrap;margin:clamp(1.75rem,4vw,2.75rem) 0 1rem}
+.pager[hidden]{display:none}
+.pg-list{display:flex;align-items:center;gap:.4rem;list-style:none;margin:0;padding:0}
+.pg-num,.pg-btn{min-width:2.5rem;height:2.5rem;display:inline-flex;align-items:center;justify-content:center;background:transparent;color:var(--ink);border:1.5px solid var(--line);border-radius:999px;font:700 .8125rem var(--sans);letter-spacing:.04em;cursor:pointer;transition:background-color .2s,color .2s,border-color .2s}
+.pg-btn{padding:0 1.1rem}
+.pg-num{width:2.5rem;padding:0}
+.pg-num:hover,.pg-btn:hover:not(:disabled){border-color:var(--line-strong);background:rgba(143,184,161,.14)}
+.pg-num[aria-current="page"]{background:var(--ink);color:var(--on-accent);border-color:var(--ink);cursor:default}
+.pg-btn:disabled{opacity:.35;cursor:not-allowed}
+.pg-gap{color:var(--muted);padding:0 .2rem}
+.pg-status{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.pg-num:focus-visible,.pg-btn:focus-visible{outline:2px solid var(--line-strong);outline-offset:3px}
+@media (max-width:600px){
+  .pg-list{display:none}
+  .pager{flex-wrap:nowrap;gap:.6rem}
+  .pg-status{position:static;width:auto;height:auto;overflow:visible;clip:auto;flex:1;text-align:center;color:var(--muted);font:500 .8125rem var(--sans)}
+  .pg-btn{flex:none;height:2.75rem}
+}
+@media (prefers-reduced-motion:reduce){.pg-num,.pg-btn{transition:none}}
 </style>
 <script>
 (() => {
@@ -1099,6 +1121,7 @@ body.stories-page{--page:#eef4ea;--card:#fbfdf8;--ink:#10241b;--muted:#4b6054;--
     const grid = $("grid");
     grid.innerHTML = Array.from({ length: 4 }, () => '<div class="skel" aria-hidden="true"><div><i></i><i></i><i class="s"></i></div><b></b></div>').join("");
     $("count").textContent = "Loading…";
+    $("pager").hidden = true;
     try {
       const data = await api("/blogs");
       blogs = Array.isArray(data) ? data : [];
@@ -1116,8 +1139,8 @@ function pastel(name) {
     for (const ch of String(name || "")) n = (n * 31 + ch.charCodeAt(0)) >>> 0;
     return colours[n % colours.length];
   }
-  const PAGE_SIZE = 8;
-  let storyLimit = PAGE_SIZE, storyKey = "";
+  const PAGE_SIZE = 8; // stories per page
+  let storyPage = 1, storyKey = "";
   function renderBlogs() {
     const grid = $("grid");
     // The filter bar always lists every category so it stays stable once the backend supplies them.
@@ -1132,11 +1155,12 @@ function pastel(name) {
     ).join("");
     $("count").textContent = `${filtered.length} ${filtered.length === 1 ? "story" : "stories"}`;
     const key = `${activeFilter}|${searchTerm}`;
-    if (key !== storyKey) { storyKey = key; storyLimit = PAGE_SIZE; }
+    if (key !== storyKey) { storyKey = key; storyPage = 1; }
     if (!filtered.length) {
       grid.innerHTML = blogs.length
         ? `<p class="none">${activeFilter === "All" ? "No stories match your search. Try another word." : `No ${esc(activeFilter)} stories match yet.`}</p>`
         : `<p class="none">No stories have been published yet. Be the first to share one.</p>`;
+      $("pager").hidden = true;
       return;
     }
     const card = (blog, i) => {
@@ -1165,8 +1189,31 @@ function pastel(name) {
         </div>
       </article>`;
     };
-    grid.innerHTML = filtered.slice(0, storyLimit).map(card).join("") +
-      (filtered.length > storyLimit ? `<button class="ghost-btn more-stories" id="moreStories" type="button">Load more stories (${filtered.length - storyLimit} left)</button>` : "");
+    const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+    storyPage = Math.min(Math.max(1, storyPage), pages);
+    const from = (storyPage - 1) * PAGE_SIZE;
+    const to = Math.min(from + PAGE_SIZE, filtered.length);
+    grid.innerHTML = filtered.slice(from, to).map(card).join("");
+    if (pages > 1) $("count").textContent = `Showing ${from + 1}–${to} of ${filtered.length}`;
+    renderPager(pages);
+  }
+  function renderPager(pages) {
+    const nav = $("pager");
+    if (pages <= 1) { nav.hidden = true; nav.innerHTML = ""; return; }
+    const shown = new Set([1, pages, storyPage - 1, storyPage, storyPage + 1]);
+    if (storyPage <= 3) [2, 3, 4].forEach(n => shown.add(n));
+    if (storyPage >= pages - 2) [pages - 1, pages - 2, pages - 3].forEach(n => shown.add(n));
+    const list = [...shown].filter(n => n >= 1 && n <= pages).sort((a, b) => a - b);
+    let items = "";
+    list.forEach((n, i) => {
+      if (i && n - list[i - 1] > 1) items += '<li class="pg-gap" aria-hidden="true">…</li>';
+      const current = n === storyPage;
+      items += `<li><button class="pg-num" type="button" data-page="${n}"${current ? ' aria-current="page"' : ""} aria-label="${current ? `Page ${n}, current page` : `Go to page ${n}`}">${n}</button></li>`;
+    });
+    nav.innerHTML = `<button class="pg-btn" type="button" data-page="${storyPage - 1}"${storyPage === 1 ? " disabled" : ""}>← Prev</button>` +
+      `<ol class="pg-list">${items}</ol><span class="pg-status" aria-live="polite">Page ${storyPage} of ${pages}</span>` +
+      `<button class="pg-btn" type="button" data-page="${storyPage + 1}"${storyPage === pages ? " disabled" : ""}>Next →</button>`;
+    nav.hidden = false;
   }
 
   function openAuth(mode = "login") {
@@ -1478,7 +1525,16 @@ function pastel(name) {
     $("wordCount").textContent = `${words} words`;
   });
   $("cancelEditor").addEventListener("click", () => $("editorPanel").classList.add("hidden"));
-  $("grid").addEventListener("click", (e) => { if (e.target.closest("#moreStories")) { storyLimit += PAGE_SIZE; renderBlogs(); } });
+  $("pager").addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-page]");
+    if (!btn || btn.disabled) return;
+    storyPage = Number(btn.getAttribute("data-page"));
+    renderBlogs();
+    const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    $("latest-stories").querySelector(".bar2").scrollIntoView({ behavior: calm ? "auto" : "smooth", block: "start" });
+    const first = $("grid").querySelector(".lnk");
+    if (first) first.focus({ preventScroll: true });
+  });
   $("backToStories").addEventListener("click", async () => {
     if (/^#story-/.test(location.hash)) { try { history.pushState({ journalPage: "stories" }, "", "#stories"); } catch {} }
     showStories(); await refreshBlogs();
