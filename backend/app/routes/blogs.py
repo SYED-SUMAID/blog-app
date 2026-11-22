@@ -27,8 +27,6 @@ BLOG_SQL = """
 FEED_SQL = BLOG_SQL + """
     JOIN userfollow f ON f.following_id = b.author_id
     WHERE f.follower_id = :follower_id
-    ORDER BY b.created_at DESC
-    LIMIT :limit OFFSET :skip
 """
 
 
@@ -60,18 +58,26 @@ def create_blog(
     }
 
 
-# Get all blogs (newest first), with paging
+# Get blogs, newest first.
+#   /blogs?limit=8                    -> the 8 newest stories
+#   /blogs?limit=8&cursor=<blog_id>   -> the 8 stories older than that blog_id (endless scroll)
+#   /blogs?limit=8&skip=16            -> old style offset paging, still works
 @router.get("/blogs", response_model=list[BlogResponse])
 def get_all_blogs(
     limit: int = Query(100, ge=1, le=200),
     skip: int = Query(0, ge=0),
+    cursor: int | None = Query(None, ge=1),
     session: Session = Depends(get_session)
 ):
 
-    rows = session.exec(
-        text(BLOG_SQL + " ORDER BY b.blog_id DESC LIMIT :limit OFFSET :skip"),
-        params={"limit": limit, "skip": skip}
-    ).mappings().all()
+    if cursor is not None:
+        sql = BLOG_SQL + " WHERE b.blog_id < :cursor ORDER BY b.blog_id DESC LIMIT :limit"
+        params = {"cursor": cursor, "limit": limit}
+    else:
+        sql = BLOG_SQL + " ORDER BY b.blog_id DESC LIMIT :limit OFFSET :skip"
+        params = {"limit": limit, "skip": skip}
+
+    rows = session.exec(text(sql), params=params).mappings().all()
 
     return [dict(row) for row in rows]
 
@@ -118,18 +124,25 @@ def delete_blog(
     return {"message": "Blog deleted successfully"}
 
 
-# Following feed
+# Following feed, newest first, same cursor idea as /blogs
 @router.get("/feed", response_model=list[BlogResponse])
 def get_feed(
-    skip: int = Query(default=0, ge=0),
     limit: int = Query(default=10, ge=1, le=50),
+    skip: int = Query(default=0, ge=0),
+    cursor: int | None = Query(default=None, ge=1),
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
 
-    rows = session.exec(
-        text(FEED_SQL),
-        params={"follower_id": current_user.id, "limit": limit, "skip": skip}
-    ).mappings().all()
+    params = {"follower_id": current_user.id, "limit": limit}
+
+    if cursor is not None:
+        sql = FEED_SQL + " AND b.blog_id < :cursor ORDER BY b.blog_id DESC LIMIT :limit"
+        params["cursor"] = cursor
+    else:
+        sql = FEED_SQL + " ORDER BY b.blog_id DESC LIMIT :limit OFFSET :skip"
+        params["skip"] = skip
+
+    rows = session.exec(text(sql), params=params).mappings().all()
 
     return [dict(row) for row in rows]
