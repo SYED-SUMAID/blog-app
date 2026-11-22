@@ -4,7 +4,6 @@ from sqlmodel import Session, text
 from app.database.connection import get_session
 from app.models.blog import Blog
 from app.models.user import User
-from app.models.follow import Follow
 from app.schemas.blog import BlogCreate, BlogResponse
 from app.security.auth import get_current_user
 
@@ -22,6 +21,14 @@ BLOG_SQL = """
         u.name AS author_name
     FROM blog b
     JOIN "user" u ON u.id = b.author_id
+"""
+
+# Blogs from the authors the current user follows
+FEED_SQL = BLOG_SQL + """
+    JOIN userfollow f ON f.following_id = b.author_id
+    WHERE f.follower_id = :follower_id
+    ORDER BY b.created_at DESC
+    LIMIT :limit OFFSET :skip
 """
 
 
@@ -44,31 +51,30 @@ def create_blog(
     session.refresh(new_blog)
 
     return {
-         "blog_id": new_blog.blog_id,
-         "title": new_blog.title,
-         "content": new_blog.content,
-         "author_id": new_blog.author_id,
-         "author_name": current_user.name,
-         "created_at": new_blog.created_at
+        "blog_id": new_blog.blog_id,
+        "title": new_blog.title,
+        "content": new_blog.content,
+        "author_id": new_blog.author_id,
+        "author_name": current_user.name,
+        "created_at": new_blog.created_at
     }
 
 
-# Get all blogs (newest first)
+# Get all blogs (newest first), with paging
 @router.get("/blogs", response_model=list[BlogResponse])
 def get_all_blogs(
-    skip: int = Query(default=0, ge=0),
-    limit: int = Query(default=10, ge=1, le=50),
+    limit: int = Query(100, ge=1, le=200),
+    skip: int = Query(0, ge=0),
     session: Session = Depends(get_session)
 ):
+
     rows = session.exec(
-        text(
-            BLOG_SQL +
-            " ORDER BY b.blog_id DESC LIMIT :limit OFFSET :skip"
-        ),
-        {"limit": limit, "skip": skip}
+        text(BLOG_SQL + " ORDER BY b.blog_id DESC LIMIT :limit OFFSET :skip"),
+        params={"limit": limit, "skip": skip}
     ).mappings().all()
 
     return [dict(row) for row in rows]
+
 
 # Get one blog
 @router.get("/blog/{blog_id}", response_model=BlogResponse)
@@ -82,10 +88,7 @@ def get_blog(
     ).mappings().first()
 
     if not row:
-        raise HTTPException(
-            status_code=404,
-            detail="Blog not found"
-        )
+        raise HTTPException(status_code=404, detail="Blog not found")
 
     return dict(row)
 
@@ -101,10 +104,7 @@ def delete_blog(
     blog = session.get(Blog, blog_id)
 
     if not blog:
-        raise HTTPException(
-            status_code=404,
-            detail="Blog not found"
-        )
+        raise HTTPException(status_code=404, detail="Blog not found")
 
     if blog.author_id != current_user.id:
         raise HTTPException(
@@ -117,7 +117,8 @@ def delete_blog(
 
     return {"message": "Blog deleted successfully"}
 
-# Following Feed
+
+# Following feed
 @router.get("/feed", response_model=list[BlogResponse])
 def get_feed(
     skip: int = Query(default=0, ge=0),
@@ -126,37 +127,9 @@ def get_feed(
     current_user: User = Depends(get_current_user)
 ):
 
-    FEED_SQL = """
-        SELECT
-            b.blog_id,
-            b.title,
-            b.content,
-            b.author_id,
-            b.created_at,
-            u.name AS author_name
-
-        FROM blog b
-
-        JOIN userfollow f
-            ON b.author_id = f.following_id
-
-        JOIN "user" u
-            ON u.id = b.author_id
-
-        WHERE f.follower_id = :follower_id
-
-        ORDER BY b.created_at DESC
-
-        LIMIT :limit
-        OFFSET :skip
-    """
-
     rows = session.exec(
-        text(FEED_SQL).bindparams(
-            follower_id=current_user.id,
-            limit=limit,
-            skip=skip
-        )
+        text(FEED_SQL),
+        params={"follower_id": current_user.id, "limit": limit, "skip": skip}
     ).mappings().all()
 
     return [dict(row) for row in rows]
