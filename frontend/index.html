@@ -325,7 +325,8 @@ textarea.app-field{min-height:260px;resize:vertical}
 <div class="head"><p class="eyebrow2">Fresh from the community</p><h2>Latest <em>stories.</em></h2><p class="sub">Fresh writing from the Journal community. Read, respond, and share your own perspective.</p></div>
 <form class="blogs-search" id="blogSearch"><input aria-label="Search blogs" id="blogQuery" placeholder="Search stories, topics, writers…" type="search"/><button type="submit">Search</button></form><div class="bar2"><div aria-label="Filter by topic" class="chips" id="chips" role="group"></div><span id="count">Loading stories…</span></div>
 <div class="grid" id="grid"></div>
-<nav class="pager" id="pager" aria-label="Pagination" hidden></nav>
+<div id="feedSentinel" aria-hidden="true"></div>
+<div class="feed-end" id="feedEnd" role="status" aria-live="polite"></div>
 </main>
 <section aria-labelledby="editorHeading" class="app-panel hidden" id="editorPanel">
 <h2 id="editorHeading">Share a story.</h2>
@@ -891,27 +892,11 @@ body.stories-page{--page:#eef4ea;--card:#fbfdf8;--ink:#10241b;--muted:#4b6054;--
 .more-stories{display:block;margin:2rem auto 0}
 @media (prefers-reduced-motion:reduce){.skel i,.skel b{animation:none}}
 @media (prefers-reduced-motion:reduce){#latest-stories .media img{transition:none}#latest-stories .card:hover .media img{transform:none}}
-/* Pagination: pill buttons with the sage lining, same tokens as the room bar */
+/* Endless feed */
 #latest-stories .bar2{scroll-margin-top:5rem}
-.pager{display:flex;align-items:center;justify-content:center;gap:.75rem;flex-wrap:wrap;margin:clamp(1.75rem,4vw,2.75rem) 0 1rem}
-.pager[hidden]{display:none}
-.pg-list{display:flex;align-items:center;gap:.4rem;list-style:none;margin:0;padding:0}
-.pg-num,.pg-btn{min-width:2.5rem;height:2.5rem;display:inline-flex;align-items:center;justify-content:center;background:transparent;color:var(--ink);border:1.5px solid var(--line);border-radius:999px;font:700 .8125rem var(--sans);letter-spacing:.04em;cursor:pointer;transition:background-color .2s,color .2s,border-color .2s}
-.pg-btn{padding:0 1.1rem}
-.pg-num{width:2.5rem;padding:0}
-.pg-num:hover,.pg-btn:hover:not(:disabled){border-color:var(--line-strong);background:rgba(143,184,161,.14)}
-.pg-num[aria-current="page"]{background:var(--ink);color:var(--on-accent);border-color:var(--ink);cursor:default}
-.pg-btn:disabled{opacity:.35;cursor:not-allowed}
-.pg-gap{color:var(--muted);padding:0 .2rem}
-.pg-status{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-.pg-num:focus-visible,.pg-btn:focus-visible{outline:2px solid var(--line-strong);outline-offset:3px}
-@media (max-width:600px){
-  .pg-list{display:none}
-  .pager{flex-wrap:nowrap;gap:.6rem}
-  .pg-status{position:static;width:auto;height:auto;overflow:visible;clip:auto;flex:1;text-align:center;color:var(--muted);font:500 .8125rem var(--sans)}
-  .pg-btn{flex:none;height:2.75rem}
-}
-@media (prefers-reduced-motion:reduce){.pg-num,.pg-btn{transition:none}}
+.feed-end{padding:1.25rem 0 2.5rem}
+.feed-note{margin:0;text-align:center;color:var(--muted);font:500 .875rem var(--sans);letter-spacing:.02em}
+.feed-note .ghost-btn{margin-left:.5rem}
 </style>
 <script>
 (() => {
@@ -1094,6 +1079,7 @@ body.stories-page{--page:#eef4ea;--card:#fbfdf8;--ink:#10241b;--muted:#4b6054;--
   }
 
   function showStories({ query = "", focus = false, navigate = true } = {}) {
+    const fromArticle = !$("articlePage").classList.contains("hidden");
     if (!document.body.classList.contains("stories-page")) {
       document.body.classList.add("stories-page");
       if (navigate) history.pushState({ journalPage: "stories" }, "", "#stories");
@@ -1104,7 +1090,7 @@ body.stories-page{--page:#eef4ea;--card:#fbfdf8;--ink:#10241b;--muted:#4b6054;--
     searchTerm = query.trim().toLowerCase();
     $("blogQuery").value = query;
     renderBlogs();
-    window.scrollTo({ top: 0, behavior: "auto" });
+    window.scrollTo({ top: fromArticle ? listScroll : 0, behavior: "auto" });
     if (focus) setTimeout(() => $("blogQuery").focus(), 150);
   }
   function showHome({ navigate = true } = {}) {
@@ -1121,13 +1107,19 @@ body.stories-page{--page:#eef4ea;--card:#fbfdf8;--ink:#10241b;--muted:#4b6054;--
     const grid = $("grid");
     grid.innerHTML = Array.from({ length: 4 }, () => '<div class="skel" aria-hidden="true"><div><i></i><i></i><i class="s"></i></div><b></b></div>').join("");
     $("count").textContent = "Loading…";
-    $("pager").hidden = true;
+    setFeedEnd("");
+    feedDone = false; feedLoading = false; feedError = false; nextCursor = null; shownCount = 0;
+    const ticket = ++feedTicket; // ignore an answer that belongs to an older refresh
     try {
-      const data = await api("/blogs");
-      blogs = Array.isArray(data) ? data : [];
+      const first = await fetchBatch(null);
+      if (ticket !== feedTicket) return;
+      blogs = first;
+      nextCursor = first.length ? Number(blogId(first[first.length - 1])) : null;
+      feedDone = first.length < BATCH;
       renderBlogs();
     } catch (error) {
       blogs = [];
+      feedDone = true;
       $("count").textContent = "Not connected";
       grid.innerHTML = `<div class="connection-note"><b>Stories could not be loaded.</b><br>${esc(error.message)}<br><button class="ghost-btn" id="retryStories" type="button">Try again</button></div>`;
       $("retryStories").addEventListener("click", refreshBlogs);
@@ -1139,9 +1131,11 @@ function pastel(name) {
     for (const ch of String(name || "")) n = (n * 31 + ch.charCodeAt(0)) >>> 0;
     return colours[n % colours.length];
   }
-  const PAGE_SIZE = 8; // stories per page
-  let storyPage = 1, storyKey = "";
-  function renderBlogs() {
+  const BATCH = 8; // stories per request (cursor paging)
+  let nextCursor = null, feedDone = false, feedLoading = false, feedError = false;
+  let shownCount = 0, feedKey = "", feedTicket = 0, listScroll = 0;
+  const SKELETON = '<div class="skel" aria-hidden="true"><div><i></i><i></i><i class="s"></i></div><b></b></div>';
+  function renderBlogs({ append = false } = {}) {
     const grid = $("grid");
     // The filter bar always lists every category so it stays stable once the backend supplies them.
     const present = CATEGORIES;
@@ -1153,14 +1147,17 @@ function pastel(name) {
     $("chips").innerHTML = ["All", ...present].map(category =>
       `<button class="chip" type="button" data-filter="${category}" aria-pressed="${activeFilter === category}">${category}</button>`
     ).join("");
-    $("count").textContent = `${filtered.length} ${filtered.length === 1 ? "story" : "stories"}`;
+    $("count").textContent = `${filtered.length}${feedDone ? "" : "+"} ${filtered.length === 1 && feedDone ? "story" : "stories"}`;
     const key = `${activeFilter}|${searchTerm}`;
-    if (key !== storyKey) { storyKey = key; storyPage = 1; }
+    const keyChanged = key !== feedKey;
+    if (keyChanged) feedKey = key;
     if (!filtered.length) {
       grid.innerHTML = blogs.length
         ? `<p class="none">${activeFilter === "All" ? "No stories match your search. Try another word." : `No ${esc(activeFilter)} stories match yet.`}</p>`
         : `<p class="none">No stories have been published yet. Be the first to share one.</p>`;
-      $("pager").hidden = true;
+      shownCount = 0;
+      syncFeedEnd();
+      maybeLoadMore();
       return;
     }
     const card = (blog, i) => {
@@ -1189,31 +1186,54 @@ function pastel(name) {
         </div>
       </article>`;
     };
-    const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-    storyPage = Math.min(Math.max(1, storyPage), pages);
-    const from = (storyPage - 1) * PAGE_SIZE;
-    const to = Math.min(from + PAGE_SIZE, filtered.length);
-    grid.innerHTML = filtered.slice(from, to).map(card).join("");
-    if (pages > 1) $("count").textContent = `Showing ${from + 1}–${to} of ${filtered.length}`;
-    renderPager(pages);
+    if (append && !keyChanged && shownCount > 0 && shownCount <= filtered.length) {
+      grid.insertAdjacentHTML("beforeend", filtered.slice(shownCount).map(card).join(""));
+    } else {
+      grid.innerHTML = filtered.map(card).join("");
+    }
+    shownCount = filtered.length;
+    syncFeedEnd();
+    maybeLoadMore();
   }
-  function renderPager(pages) {
-    const nav = $("pager");
-    if (pages <= 1) { nav.hidden = true; nav.innerHTML = ""; return; }
-    const shown = new Set([1, pages, storyPage - 1, storyPage, storyPage + 1]);
-    if (storyPage <= 3) [2, 3, 4].forEach(n => shown.add(n));
-    if (storyPage >= pages - 2) [pages - 1, pages - 2, pages - 3].forEach(n => shown.add(n));
-    const list = [...shown].filter(n => n >= 1 && n <= pages).sort((a, b) => a - b);
-    let items = "";
-    list.forEach((n, i) => {
-      if (i && n - list[i - 1] > 1) items += '<li class="pg-gap" aria-hidden="true">…</li>';
-      const current = n === storyPage;
-      items += `<li><button class="pg-num" type="button" data-page="${n}"${current ? ' aria-current="page"' : ""} aria-label="${current ? `Page ${n}, current page` : `Go to page ${n}`}">${n}</button></li>`;
-    });
-    nav.innerHTML = `<button class="pg-btn" type="button" data-page="${storyPage - 1}"${storyPage === 1 ? " disabled" : ""}>← Prev</button>` +
-      `<ol class="pg-list">${items}</ol><span class="pg-status" aria-live="polite">Page ${storyPage} of ${pages}</span>` +
-      `<button class="pg-btn" type="button" data-page="${storyPage + 1}"${storyPage === pages ? " disabled" : ""}>Next →</button>`;
-    nav.hidden = false;
+  // ---- Endless feed: cursor paging (each request asks for stories older than the last one we have) ----
+  async function fetchBatch(cursor) {
+    const q = new URLSearchParams({ limit: String(BATCH) });
+    if (cursor) q.set("cursor", String(cursor));
+    const data = await api("/blogs?" + q.toString());
+    return Array.isArray(data) ? data : [];
+  }
+  function setFeedEnd(state) {
+    const el = $("feedEnd");
+    if (state === "loading") el.innerHTML = SKELETON + SKELETON;
+    else if (state === "done") el.innerHTML = '<p class="feed-note">You\u2019re all caught up.</p>';
+    else if (state === "error") el.innerHTML = '<p class="feed-note">Couldn\u2019t load more stories. <button class="ghost-btn" id="feedRetry" type="button">Try again</button></p>';
+    else el.innerHTML = "";
+  }
+  function syncFeedEnd() { setFeedEnd(feedError ? "error" : feedLoading ? "loading" : feedDone && blogs.length ? "done" : ""); }
+  function maybeLoadMore() {
+    const sentinel = $("feedSentinel");
+    if (!sentinel || feedDone || feedLoading || feedError || $("latest-stories").hidden) return;
+    // Search and topic filters look at every story, so keep loading while one is active.
+    const needAll = (searchTerm || activeFilter !== "All") && blogs.length < 1000;
+    if (needAll || sentinel.getBoundingClientRect().top < window.innerHeight + 700) loadMore();
+  }
+  async function loadMore() {
+    if (feedLoading || feedDone || feedError) return;
+    const ticket = feedTicket;
+    feedLoading = true; syncFeedEnd();
+    try {
+      const batch = await fetchBatch(nextCursor);
+      if (ticket !== feedTicket) return;
+      const have = new Set(blogs.map(b => Number(blogId(b))));
+      blogs = blogs.concat(batch.filter(b => !have.has(Number(blogId(b)))));
+      if (batch.length) nextCursor = Number(blogId(batch[batch.length - 1]));
+      feedDone = batch.length < BATCH;
+      feedLoading = false;
+      renderBlogs({ append: true });
+    } catch {
+      if (ticket !== feedTicket) return;
+      feedLoading = false; feedError = true; syncFeedEnd();
+    }
   }
 
   function openAuth(mode = "login") {
@@ -1347,6 +1367,7 @@ function pastel(name) {
   }
 
   async function openArticle(id) {
+    if (!$("latest-stories").hidden) listScroll = window.scrollY;
     $("articlePage").classList.remove("hidden");
     $("latest-stories").hidden = true;
     $("editorPanel").classList.add("hidden");
@@ -1498,7 +1519,7 @@ function pastel(name) {
   window.addEventListener("popstate", () => {
     const storyHash = location.hash.match(/^#story-(.+)$/);
     if (storyHash) { showStories({ navigate: false }); openArticle(storyHash[1]); return; }
-    if (location.hash === "#stories") { showStories({ navigate: false }); refreshBlogs(); }
+    if (location.hash === "#stories") { showStories({ navigate: false }); if (!blogs.length) refreshBlogs(); }
     else showHome({ navigate: false });
   });
   document.querySelectorAll("[data-go]").forEach(el => el.addEventListener("click", async () => { showStories(); await refreshBlogs(); }));
@@ -1525,19 +1546,15 @@ function pastel(name) {
     $("wordCount").textContent = `${words} words`;
   });
   $("cancelEditor").addEventListener("click", () => $("editorPanel").classList.add("hidden"));
-  $("pager").addEventListener("click", (e) => {
-    const btn = e.target.closest("[data-page]");
-    if (!btn || btn.disabled) return;
-    storyPage = Number(btn.getAttribute("data-page"));
-    renderBlogs();
-    const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    $("latest-stories").querySelector(".bar2").scrollIntoView({ behavior: calm ? "auto" : "smooth", block: "start" });
-    const first = $("grid").querySelector(".lnk");
-    if (first) first.focus({ preventScroll: true });
-  });
+  $("feedEnd").addEventListener("click", (e) => { if (e.target.closest("#feedRetry")) { feedError = false; loadMore(); } });
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver((entries) => { if (entries.some(en => en.isIntersecting)) maybeLoadMore(); }, { rootMargin: "700px 0px" }).observe($("feedSentinel"));
+  } else {
+    window.addEventListener("scroll", maybeLoadMore, { passive: true });
+  }
   $("backToStories").addEventListener("click", async () => {
     if (/^#story-/.test(location.hash)) { try { history.pushState({ journalPage: "stories" }, "", "#stories"); } catch {} }
-    showStories(); await refreshBlogs();
+    showStories(); if (!blogs.length) await refreshBlogs(); // keep the loaded feed and your place in it
   });
   $("commentForm").addEventListener("submit", postComment);
   $("likeButton").addEventListener("click", toggleLike);
