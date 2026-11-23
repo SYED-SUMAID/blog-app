@@ -10,7 +10,9 @@ from app.schemas.blog import (
     BlogCreate, BlogResponse, BlogUpdate,
     CATEGORIES, CATEGORY_MARKER, normalize_category
 )
+from fastapi import APIRouter, Depends, HTTPException, Query
 
+router = APIRouter()
 # Blog joined with the author's name
 BLOG_SQL = """
     SELECT
