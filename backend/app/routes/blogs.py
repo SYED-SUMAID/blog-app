@@ -6,9 +6,10 @@ from app.models.blog import Blog
 from app.models.user import User
 from app.schemas.blog import BlogCreate, BlogResponse
 from app.security.auth import get_current_user
-
-router = APIRouter()
-
+from app.schemas.blog import (
+    BlogCreate, BlogResponse, BlogUpdate,
+    CATEGORIES, CATEGORY_MARKER, normalize_category
+)
 
 # Blog joined with the author's name
 BLOG_SQL = """
@@ -38,9 +39,21 @@ def create_blog(
     current_user: User = Depends(get_current_user)
 ):
 
+    category = blog_data.category
+
+    # Old frontend: pull the category out of the "[[category:Name]]" line
+    if category is None:
+        match = CATEGORY_MARKER.match(blog_data.content)
+        if match:
+            try:
+                category = normalize_category(match.group(1))
+            except ValueError:
+                category = None
+
     new_blog = Blog(
         title=blog_data.title,
         content=blog_data.content,
+        category=category,
         author_id=current_user.id
     )
 
@@ -67,20 +80,47 @@ def get_all_blogs(
     limit: int = Query(100, ge=1, le=200),
     skip: int = Query(0, ge=0),
     cursor: int | None = Query(None, ge=1),
+    category: str | None = Query(None),
     session: Session = Depends(get_session)
 ):
 
+    conditions = []
+    params = {"limit": limit}
+
+    if category:
+        try:
+            params["category"] = normalize_category(category)
+        except ValueError as error:
+            raise HTTPException(status_code=422, detail=str(error))
+        conditions.append("b.category = :category")
+
     if cursor is not None:
-        sql = BLOG_SQL + " WHERE b.blog_id < :cursor ORDER BY b.blog_id DESC LIMIT :limit"
-        params = {"cursor": cursor, "limit": limit}
-    else:
-        sql = BLOG_SQL + " ORDER BY b.blog_id DESC LIMIT :limit OFFSET :skip"
-        params = {"limit": limit, "skip": skip}
+        conditions.append("b.blog_id < :cursor")
+        params["cursor"] = cursor
+
+    where = " WHERE " + " AND ".join(conditions) if conditions else ""
+    sql = BLOG_SQL + where + " ORDER BY b.blog_id DESC LIMIT :limit"
+
+    if cursor is None:
+        sql += " OFFSET :skip"
+        params["skip"] = skip
 
     rows = session.exec(text(sql), params=params).mappings().all()
 
     return [dict(row) for row in rows]
 
+
+# List the categories, with how many stories each one has
+@router.get("/categories")
+def get_categories(session: Session = Depends(get_session)):
+
+    rows = session.exec(
+        text("SELECT category, COUNT(*) AS n FROM blog WHERE category IS NOT NULL GROUP BY category")
+    ).all()
+
+    counts = {row[0]: row[1] for row in rows}
+
+    return [{"name": name, "count": counts.get(name, 0)} for name in CATEGORIES]
 
 # Get one blog
 @router.get("/blog/{blog_id}", response_model=BlogResponse)
@@ -98,7 +138,41 @@ def get_blog(
 
     return dict(row)
 
+@router.patch("/blog/{blog_id}", response_model=BlogResponse)
+def update_blog(
+    blog_id: int,
+    blog_data: BlogUpdate,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    blog = session.get(Blog, blog_id)
 
+    if not blog:
+        raise HTTPException(status_code=404, detail="Blog not found")
+
+    if blog.author_id != current_user.id:
+        raise HTTPException(status_code=403, detail="You cannot edit another user's blog")
+
+    changes = blog_data.model_dump(exclude_unset=True)
+
+    if not changes or any(v is None for v in changes.values()):
+        raise HTTPException(status_code=422, detail="Provide a non-empty title and/or content")
+
+    for field, value in changes.items():
+        setattr(blog, field, value)
+
+    session.add(blog)
+    session.commit()
+    session.refresh(blog)
+
+    return {
+        "blog_id": blog.blog_id,
+        "title": blog.title,
+        "content": blog.content,
+        "author_id": blog.author_id,
+        "author_name": current_user.name,
+        "created_at": blog.created_at
+    }
 # Delete a blog
 @router.delete("/blog/{blog_id}")
 def delete_blog(
