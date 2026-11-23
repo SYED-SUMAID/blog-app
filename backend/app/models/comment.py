@@ -11,11 +11,13 @@ class Comment(SQLModel, table=True):
     text: str
 
     blog_id: int = Field(
-        foreign_key="blog.blog_id"
+        foreign_key="blog.blog_id",
+        ondelete="CASCADE"
     )
 
     commenter_id: int = Field(
-        foreign_key="user.id"
+        foreign_key="user.id",
+        ondelete="CASCADE"
     )
 
     created_at: datetime = Field(

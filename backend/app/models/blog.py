@@ -13,7 +13,8 @@ class Blog(SQLModel, table=True):
     content: str
 
     author_id: int = Field(
-        foreign_key="user.id"
+        foreign_key="user.id",
+        ondelete="CASCADE"
     )
 
     created_at: datetime = Field(

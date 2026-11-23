@@ -17,7 +17,10 @@ password_hash = PasswordHash.recommended()
 
 
 # JWT configuration
-SECRET_KEY = os.getenv("SECRET_KEY", "change-this-secret-key")
+SECRET_KEY = os.getenv("SECRET_KEY")
+
+if not SECRET_KEY:
+    raise ValueError("SECRET_KEY is not configured")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 

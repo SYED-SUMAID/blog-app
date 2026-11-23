@@ -28,13 +28,13 @@ users = []
 for _ in range(500):
     unique_id = uuid.uuid4().hex[:8]
 
-users.append({
-    "name": fake.name(),
-    "username": f"user_{unique_id}",
-    "email": f"user_{unique_id}@example.com",
-    "hashed_password": hashed_password,
-    "created_at": datetime.now(timezone.utc)
-})
+    users.append({
+        "name": fake.name(),
+        "username": f"user_{unique_id}",
+        "email": f"user_{unique_id}@example.com",
+        "hashed_password": hashed_password,
+        "created_at": datetime.now(timezone.utc)
+    })
 with engine.begin() as connection:
 
     connection.execute(

@@ -16,9 +16,11 @@ class Like(SQLModel, table=True):
     like_id: int | None = Field(default=None, primary_key=True)
 
     blog_id: int = Field(
-        foreign_key="blog.blog_id"
+        foreign_key="blog.blog_id",
+        ondelete="CASCADE"
     )
 
     user_id: int = Field(
-        foreign_key="user.id"
+        foreign_key="user.id",
+        ondelete="CASCADE"
     )
