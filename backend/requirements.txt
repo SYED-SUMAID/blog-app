@@ -9,3 +9,7 @@ pwdlib[argon2]
 
 python-multipart
 python-dotenv
+
+# only used by seed_users.py / seed_blogs.py
+faker
+bcrypt

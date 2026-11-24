@@ -19,6 +19,11 @@ engine = create_engine(DATABASE_URL)
 
 TOTAL_BLOGS = 1000
 
+CATEGORIES = [
+    "Technology", "History", "Religion",
+    "Fashion", "Markets", "Lifestyle", "General"
+]
+
 with engine.begin() as connection:
 
     # Fetch all existing user IDs
@@ -41,6 +46,7 @@ with engine.begin() as connection:
         blogs.append({
             "title": fake.sentence(nb_words=6).rstrip("."),
             "content": fake.paragraph(nb_sentences=12),
+            "category": random.choice(CATEGORIES),
             "author_id": random.choice(user_ids),
             "created_at": created_at
         })
@@ -49,9 +55,9 @@ with engine.begin() as connection:
     connection.execute(
         text("""
             INSERT INTO blog
-                (title, content, author_id, created_at)
+                (title, content, category, author_id, created_at)
             VALUES
-                (:title, :content, :author_id, :created_at)
+                (:title, :content, :category, :author_id, :created_at)
         """),
         blogs
     )

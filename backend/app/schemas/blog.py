@@ -34,9 +34,8 @@ def normalize_category(value: str | None) -> str | None:
 
 
 class BlogCreate(BaseModel):
-    title: str
-    content: str
-    category: str | None = None
+    title: str | None = Field(default=None, min_length=1, max_length=180)
+    content: str | None = Field(default=None, min_length=1, max_length=20000)
 
     @field_validator("category")
     @classmethod
