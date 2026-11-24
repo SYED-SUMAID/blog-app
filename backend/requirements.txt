@@ -10,6 +10,9 @@ pwdlib[argon2]
 python-multipart
 python-dotenv
 
+pydantic[email]
+email-validator
+
 # only used by seed_users.py / seed_blogs.py
 faker
 bcrypt

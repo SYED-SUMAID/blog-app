@@ -186,7 +186,7 @@
     $("latest-stories").hidden = false;
     $("articlePage").classList.add("hidden");
     $("editorPanel").classList.add("hidden");
-    searchTerm = query.trim().toLowerCase();
+    searchTerm = query.trim();
     $("blogQuery").value = query;
     renderBlogs();
     window.scrollTo({ top: fromArticle ? listScroll : 0, behavior: "auto" });
@@ -238,11 +238,7 @@ function pastel(name) {
     const grid = $("grid");
     // The filter bar always lists every category so it stays stable once the backend supplies them.
     const present = CATEGORIES;
-    const filtered = blogs.filter(blog => {
-      const category = categoryOf(blog);
-      const haystack = `${blog.title || ""} ${storyText(blog)} ${authorName(blog)} ${category}`.toLowerCase();
-      return (activeFilter === "All" || activeFilter === category) && haystack.includes(searchTerm);
-    });
+    const filtered = blogs; // search and topic filters are applied by the API (see fetchBatch)
     $("chips").innerHTML = ["All", ...present].map(category =>
       `<button class="chip" type="button" data-filter="${category}" aria-pressed="${activeFilter === category}">${category}</button>`
     ).join("");
@@ -251,8 +247,8 @@ function pastel(name) {
     const keyChanged = key !== feedKey;
     if (keyChanged) feedKey = key;
     if (!filtered.length) {
-      grid.innerHTML = blogs.length
-        ? `<p class="none">${activeFilter === "All" ? "No stories match your search. Try another word." : `No ${esc(activeFilter)} stories match yet.`}</p>`
+      grid.innerHTML = (searchTerm || activeFilter !== "All")
+        ? `<p class="none">${searchTerm ? `No stories match \u201c${esc(searchTerm)}\u201d${activeFilter === "All" ? "" : ` in ${esc(activeFilter)}`}. Try another word.` : `No ${esc(activeFilter)} stories yet.`}</p>`
         : `<p class="none">No stories have been published yet. Be the first to share one.</p>`;
       shownCount = 0;
       syncFeedEnd();
@@ -298,6 +294,8 @@ function pastel(name) {
   async function fetchBatch(cursor) {
     const q = new URLSearchParams({ limit: String(BATCH) });
     if (cursor) q.set("cursor", String(cursor));
+    if (searchTerm) q.set("q", searchTerm);
+    if (activeFilter !== "All") q.set("category", activeFilter);
     const data = await api("/blogs?" + q.toString());
     return Array.isArray(data) ? data : [];
   }
@@ -312,9 +310,7 @@ function pastel(name) {
   function maybeLoadMore() {
     const sentinel = $("feedSentinel");
     if (!sentinel || feedDone || feedLoading || feedError || $("latest-stories").hidden) return;
-    // Search and topic filters look at every story, so keep loading while one is active.
-    const needAll = (searchTerm || activeFilter !== "All") && blogs.length < 1000;
-    if (needAll || sentinel.getBoundingClientRect().top < window.innerHeight + 700) loadMore();
+    if (sentinel.getBoundingClientRect().top < window.innerHeight + 700) loadMore();
   }
   async function loadMore() {
     if (feedLoading || feedDone || feedError) return;
@@ -486,6 +482,7 @@ function pastel(name) {
       $("wordCount").textContent = "0 words";
       $("editorPanel").classList.add("hidden");
       showToast(wasEditing ? "Your story was updated." : "Your story is now published.");
+      searchTerm = ""; activeFilter = "All"; $("blogQuery").value = "";
       await refreshBlogs();
       showStories();
     } catch (error) {
@@ -630,7 +627,7 @@ function pastel(name) {
       currentBlog = null;
       showToast("Your story has been deleted.");
       await refreshBlogs();
-      showStories();
+      showStories({ query: searchTerm });
     } catch (error) { showToast(error.message); }
   }
 
@@ -649,18 +646,17 @@ function pastel(name) {
   $("homeLogo").addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); showHome(); } });
   window.addEventListener("popstate", () => {
     const storyHash = location.hash.match(/^#story-(.+)$/);
-    if (storyHash) { showStories({ navigate: false }); openArticle(storyHash[1]); return; }
-    if (location.hash === "#stories") { showStories({ navigate: false }); if (!blogs.length) refreshBlogs(); }
+    if (storyHash) { showStories({ query: searchTerm, navigate: false }); openArticle(storyHash[1]); return; }
+    if (location.hash === "#stories") { showStories({ query: searchTerm, navigate: false }); if (!blogs.length) refreshBlogs(); }
     else showHome({ navigate: false });
   });
   document.querySelectorAll("[data-go]").forEach(el => el.addEventListener("click", async () => { showStories(); await refreshBlogs(); }));
   $("sf").addEventListener("submit", async e => {
     e.preventDefault();
-    $("latest-stories").hidden = false;
-    await refreshBlogs();
     showStories({ query: $("q").value });
+    await refreshBlogs();
   });
-  $("blogSearch").addEventListener("submit", e => { e.preventDefault(); searchTerm = $("blogQuery").value.trim().toLowerCase(); renderBlogs(); });
+  $("blogSearch").addEventListener("submit", async e => { e.preventDefault(); searchTerm = $("blogQuery").value.trim(); await refreshBlogs(); });
   $("grid").addEventListener("click", e => {
     const button = e.target.closest("[data-open-blog]");
     if (button) openArticle(button.getAttribute("data-open-blog"));
@@ -669,7 +665,7 @@ function pastel(name) {
     const button = e.target.closest("[data-filter]");
     if (!button) return;
     activeFilter = button.getAttribute("data-filter");
-    renderBlogs();
+    refreshBlogs();
   });
   $("editorForm").addEventListener("submit", publishStory);
   $("editorContent").addEventListener("input", e => {
@@ -685,7 +681,7 @@ function pastel(name) {
   }
   $("backToStories").addEventListener("click", async () => {
     if (/^#story-/.test(location.hash)) { try { history.pushState({ journalPage: "stories" }, "", "#stories"); } catch {} }
-    showStories(); if (!blogs.length) await refreshBlogs(); // keep the loaded feed and your place in it
+    showStories({ query: searchTerm }); if (!blogs.length) await refreshBlogs(); // keep the loaded feed and your place in it
   });
   $("commentForm").addEventListener("submit", postComment);
   $("likeButton").addEventListener("click", toggleLike);

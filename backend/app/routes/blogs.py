@@ -4,21 +4,32 @@ from sqlmodel import Session, text
 from app.database.connection import get_session
 from app.models.blog import Blog
 from app.models.user import User
-from app.schemas.blog import BlogCreate, BlogResponse
-from app.security.auth import get_current_user
 from app.schemas.blog import (
     BlogCreate, BlogResponse, BlogUpdate,
     CATEGORIES, CATEGORY_MARKER, normalize_category
 )
-from fastapi import APIRouter, Depends, HTTPException, Query
+from app.security.auth import get_current_user
 
 router = APIRouter()
+
+
+# Turn user text into a safe ILIKE pattern ("50%" must not act as a wildcard)
+def like_pattern(text_value: str) -> str:
+    escaped = (
+        text_value.replace("\\", "\\\\")
+        .replace("%", "\\%")
+        .replace("_", "\\_")
+    )
+    return f"%{escaped}%"
+
+
 # Blog joined with the author's name
 BLOG_SQL = """
     SELECT
         b.blog_id,
         b.title,
         b.content,
+        b.category,
         b.author_id,
         b.created_at,
         u.name AS author_name
@@ -67,6 +78,7 @@ def create_blog(
         "blog_id": new_blog.blog_id,
         "title": new_blog.title,
         "content": new_blog.content,
+        "category": new_blog.category,
         "author_id": new_blog.author_id,
         "author_name": current_user.name,
         "created_at": new_blog.created_at
@@ -77,12 +89,15 @@ def create_blog(
 #   /blogs?limit=8                    -> the 8 newest stories
 #   /blogs?limit=8&cursor=<blog_id>   -> the 8 stories older than that blog_id (endless scroll)
 #   /blogs?limit=8&skip=16            -> old style offset paging, still works
+#   /blogs?category=Technology        -> only stories in that category
+#   /blogs?q=word                     -> search title, story text, author name/username, category
 @router.get("/blogs", response_model=list[BlogResponse])
 def get_all_blogs(
     limit: int = Query(100, ge=1, le=200),
     skip: int = Query(0, ge=0),
     cursor: int | None = Query(None, ge=1),
     category: str | None = Query(None),
+    q: str | None = Query(None, max_length=100),
     session: Session = Depends(get_session)
 ):
 
@@ -95,6 +110,13 @@ def get_all_blogs(
         except ValueError as error:
             raise HTTPException(status_code=422, detail=str(error))
         conditions.append("b.category = :category")
+
+    if q and q.strip():
+        conditions.append(
+            "(b.title ILIKE :q OR b.content ILIKE :q OR u.name ILIKE :q "
+            "OR u.username ILIKE :q OR b.category ILIKE :q)"
+        )
+        params["q"] = like_pattern(q.strip())
 
     if cursor is not None:
         conditions.append("b.blog_id < :cursor")
@@ -124,6 +146,7 @@ def get_categories(session: Session = Depends(get_session)):
 
     return [{"name": name, "count": counts.get(name, 0)} for name in CATEGORIES]
 
+
 # Get one blog
 @router.get("/blog/{blog_id}", response_model=BlogResponse)
 def get_blog(
@@ -140,6 +163,8 @@ def get_blog(
 
     return dict(row)
 
+
+# Edit a blog (only the author can; send only the fields to change)
 @router.patch("/blog/{blog_id}", response_model=BlogResponse)
 def update_blog(
     blog_id: int,
@@ -147,18 +172,25 @@ def update_blog(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
+
     blog = session.get(Blog, blog_id)
 
     if not blog:
         raise HTTPException(status_code=404, detail="Blog not found")
 
     if blog.author_id != current_user.id:
-        raise HTTPException(status_code=403, detail="You cannot edit another user's blog")
+        raise HTTPException(
+            status_code=403,
+            detail="You cannot edit another user's blog"
+        )
 
     changes = blog_data.model_dump(exclude_unset=True)
 
     if not changes or any(v is None for v in changes.values()):
-        raise HTTPException(status_code=422, detail="Provide a non-empty title and/or content")
+        raise HTTPException(
+            status_code=422,
+            detail="Provide a non-empty title and/or content"
+        )
 
     for field, value in changes.items():
         setattr(blog, field, value)
@@ -171,10 +203,13 @@ def update_blog(
         "blog_id": blog.blog_id,
         "title": blog.title,
         "content": blog.content,
+        "category": blog.category,
         "author_id": blog.author_id,
         "author_name": current_user.name,
         "created_at": blog.created_at
     }
+
+
 # Delete a blog
 @router.delete("/blog/{blog_id}")
 def delete_blog(
