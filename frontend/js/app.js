@@ -153,19 +153,24 @@
   function updateNav() {
     const authButton = $("authNavButton");
     const signOut = $("signOutButton");
-    const write = $("navWrite");
     if (token && currentUser) {
-      authButton.textContent = currentUser.username || "Account";
-      authButton.title = `Signed in as ${currentUser.username}`;
+      const name = String(currentUser.username || "Account");
+      authButton.className = "account-btn";
+      authButton.innerHTML = `<span class="av" aria-hidden="true">${esc(name.charAt(0).toUpperCase())}</span><span class="name">${esc(name)}</span>`;
+      authButton.setAttribute("aria-label", `Signed in as ${name}`);
+      authButton.title = `Signed in as ${name}`;
+      authButton.disabled = true;
       signOut.classList.remove("hidden");
-      write.textContent = "Write";
     } else {
+      authButton.className = "app-btn secondary sm";
       authButton.textContent = "Sign in";
+      authButton.removeAttribute("aria-label");
       authButton.title = "Sign in to Journal";
+      authButton.disabled = false;
       signOut.classList.add("hidden");
-      write.textContent = "Write";
     }
   }
+  function setWriting(on) { document.body.classList.toggle("writing", on); }
   async function loadMe() {
     if (!token) { currentUser = null; updateNav(); return; }
     try {
@@ -186,6 +191,7 @@
     $("latest-stories").hidden = false;
     $("articlePage").classList.add("hidden");
     $("editorPanel").classList.add("hidden");
+    setWriting(false);
     searchTerm = query.trim();
     $("blogQuery").value = query;
     renderBlogs();
@@ -197,6 +203,7 @@
     $("articlePage").classList.add("hidden");
     $("editorPanel").classList.add("hidden");
     $("latest-stories").hidden = true;
+    setWriting(false);
     if (navigate && location.hash === "#stories") {
       history.pushState({ journalPage: "home" }, "", location.pathname + location.search);
     }
@@ -204,8 +211,8 @@
   }
   async function refreshBlogs() {
     const grid = $("grid");
-    grid.innerHTML = Array.from({ length: 4 }, () => '<div class="skel" aria-hidden="true"><div><i></i><i></i><i class="s"></i></div><b></b></div>').join("");
-    $("count").textContent = "Loading…";
+    grid.innerHTML = SKELETON.repeat(4);
+    $("count").textContent = "";
     setFeedEnd("");
     feedDone = false; feedLoading = false; feedError = false; nextCursor = null; shownCount = 0;
     const ticket = ++feedTicket; // ignore an answer that belongs to an older refresh
@@ -219,21 +226,15 @@
     } catch (error) {
       blogs = [];
       feedDone = true;
-      $("count").textContent = "Not connected";
+      $("count").textContent = "";
       grid.innerHTML = `<div class="connection-note"><b>Stories could not be loaded.</b><br>${esc(error.message)}<br><button class="ghost-btn" id="retryStories" type="button">Try again</button></div>`;
       $("retryStories").addEventListener("click", refreshBlogs);
     }
   }
-function pastel(name) {
-    const colours = ["#8bb8a0", "#9fb7dc", "#b8a9d9", "#7fc1c4", "#b5bec3"];
-    let n = 0;
-    for (const ch of String(name || "")) n = (n * 31 + ch.charCodeAt(0)) >>> 0;
-    return colours[n % colours.length];
-  }
   const BATCH = 8; // stories per request (cursor paging)
   let nextCursor = null, feedDone = false, feedLoading = false, feedError = false;
   let shownCount = 0, feedKey = "", feedTicket = 0, listScroll = 0;
-  const SKELETON = '<div class="skel" aria-hidden="true"><div><i></i><i></i><i class="s"></i></div><b></b></div>';
+  const SKELETON = '<div class="skel" aria-hidden="true"><i></i><i></i><i></i><i class="s"></i></div>';
   function renderBlogs({ append = false } = {}) {
     const grid = $("grid");
     // The filter bar always lists every category so it stays stable once the backend supplies them.
@@ -242,7 +243,7 @@ function pastel(name) {
     $("chips").innerHTML = ["All", ...present].map(category =>
       `<button class="chip" type="button" data-filter="${category}" aria-pressed="${activeFilter === category}">${category}</button>`
     ).join("");
-    $("count").textContent = `${filtered.length}${feedDone ? "" : "+"} ${filtered.length === 1 && feedDone ? "story" : "stories"}`;
+    $("count").textContent = feedDone && filtered.length ? `${filtered.length} ${filtered.length === 1 ? "story" : "stories"}` : "";
     const key = `${activeFilter}|${searchTerm}`;
     const keyChanged = key !== feedKey;
     if (keyChanged) feedKey = key;
@@ -270,15 +271,14 @@ function pastel(name) {
       const cat = esc(categoryOf(blog));
       // Cover image: the backend can send image_url / cover_image / image / thumbnail.
       const src = blog.image_url || blog.cover_image || blog.image || blog.thumbnail || "";
+      const media = src ? `<div class="media"><img src="${esc(src)}" alt="" loading="lazy" decoding="async"></div>` : "";
       return `<article class="card">
-        <div class="media"><span class="ph" aria-hidden="true"><i>${cat.charAt(0)}</i></span>${src ? `<img src="${esc(src)}" alt="" loading="lazy" decoding="async" onerror="this.remove()">` : ""}</div>
         <div class="body">
-          <div class="kicker"><span class="tagc">${cat}</span><span aria-hidden="true">·</span><span>${minutes} min read</span></div>
-          <h4><button class="lnk" type="button" data-open-blog="${id}">${title}</button></h4>
+          <div class="card-author"><span class="av" aria-hidden="true">${initial}</span><b>${author}</b>${when ? `<small>${when}</small>` : ""}</div>
+          <h3><button class="lnk" type="button" data-open-blog="${id}">${title}</button></h3>
           <p>${excerpt}</p>
-          <div class="meta"><span class="av">${initial}</span><span class="who"><b>${author}</b>${when ? `<small>${when}</small>` : ""}</span>
-          <button class="more" type="button" data-open-blog="${id}">Read →</button></div>
-        </div>
+          <div class="card-foot"><span class="tagc">${cat}</span><span>${minutes} min read</span></div>
+        </div>${media}
       </article>`;
     };
     if (append && !keyChanged && shownCount > 0 && shownCount <= filtered.length) {
@@ -437,7 +437,8 @@ function pastel(name) {
     $("articlePage").classList.add("hidden");
     $("latest-stories").hidden = false;
     $("editorPanel").classList.remove("hidden");
-    $("editorPanel").scrollIntoView({ behavior: "smooth", block: "center" });
+    setWriting(true);
+    window.scrollTo({ top: 0, behavior: "auto" });
   }
 
   function openEditor() {
@@ -450,7 +451,8 @@ function pastel(name) {
     $("latest-stories").hidden = false;
     $("articlePage").classList.add("hidden");
     $("editorPanel").classList.remove("hidden");
-    $("editorPanel").scrollIntoView({ behavior: "smooth", block: "center" });
+    setWriting(true);
+    window.scrollTo({ top: 0, behavior: "auto" });
     $("editorTitle").focus({ preventScroll: true });
   }
   async function publishStory(event) {
@@ -497,6 +499,7 @@ function pastel(name) {
     $("articlePage").classList.remove("hidden");
     $("latest-stories").hidden = true;
     $("editorPanel").classList.add("hidden");
+    setWriting(false);
     if (location.hash !== `#story-${id}`) { try { history.pushState({ journalPage: "story" }, "", `#story-${id}`); } catch {} }
     $("articleTitle").textContent = "Loading story…";
     $("articleContent").textContent = "";
@@ -526,6 +529,7 @@ function pastel(name) {
     const id = String(blogId(currentBlog));
     const author = String(currentBlog.author_id);
     $("likeButton").textContent = likedBlogs.has(id) ? "♥ Liked" : "♡ Like";
+    $("likeButton").setAttribute("aria-pressed", String(likedBlogs.has(id)));
     $("followButton").textContent = followedUsers.has(author) ? "Following" : "Follow author";
     // Authors see Delete on their own story; everyone else sees Follow.
     const ownStory = !!currentUser && String(userId(currentUser)) === author;
@@ -633,17 +637,15 @@ function pastel(name) {
 
   // Event bindings
   $("navLatest").addEventListener("click", async () => { showStories(); await refreshBlogs(); });
-  $("navTopics").addEventListener("click", async () => { showStories(); await refreshBlogs(); });
   $("navWrite").addEventListener("click", async () => { if (!$("latest-stories").hidden) { /* already on stories screen */ } else { showStories(); await refreshBlogs(); } openEditor(); });
   $("authNavButton").addEventListener("click", () => token && currentUser ? showToast(`Signed in as ${currentUser.username}`) : openAuth("login"));
   $("signOutButton").addEventListener("click", () => {
     clearSession(); updateNav(); showToast("You have signed out.");
-    if (!$("articlePage").classList.contains("hidden")) $("articlePage").classList.add("hidden");
+    if (!$("articlePage").classList.contains("hidden") || !$("editorPanel").classList.contains("hidden")) { showStories({ query: searchTerm }); if (!blogs.length) refreshBlogs(); }
   });
   $("homeLogo").addEventListener("click", showHome);
   const storyDoor = document.querySelector(".story-door");
   if (storyDoor) storyDoor.addEventListener("click", async e => { e.preventDefault(); showStories(); await refreshBlogs(); });
-  $("homeLogo").addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); showHome(); } });
   window.addEventListener("popstate", () => {
     const storyHash = location.hash.match(/^#story-(.+)$/);
     if (storyHash) { showStories({ query: searchTerm, navigate: false }); openArticle(storyHash[1]); return; }
@@ -661,6 +663,7 @@ function pastel(name) {
     const button = e.target.closest("[data-open-blog]");
     if (button) openArticle(button.getAttribute("data-open-blog"));
   });
+  $("grid").addEventListener("error", e => { if (e.target.tagName === "IMG") e.target.closest(".media")?.remove(); }, true);
   $("chips").addEventListener("click", e => {
     const button = e.target.closest("[data-filter]");
     if (!button) return;
@@ -672,7 +675,7 @@ function pastel(name) {
     const words = e.target.value.trim() ? e.target.value.trim().split(/\s+/).length : 0;
     $("wordCount").textContent = `${words} words`;
   });
-  $("cancelEditor").addEventListener("click", () => { editingId = null; setEditorMode(false); $("editorForm").reset(); $("editorPanel").classList.add("hidden"); });
+  $("cancelEditor").addEventListener("click", () => { editingId = null; setEditorMode(false); $("editorForm").reset(); $("editorPanel").classList.add("hidden"); setWriting(false); });
   $("feedEnd").addEventListener("click", (e) => { if (e.target.closest("#feedRetry")) { feedError = false; loadMore(); } });
   if ("IntersectionObserver" in window) {
     new IntersectionObserver((entries) => { if (entries.some(en => en.isIntersecting)) maybeLoadMore(); }, { rootMargin: "700px 0px" }).observe($("feedSentinel"));
@@ -688,35 +691,38 @@ function pastel(name) {
   $("followButton").addEventListener("click", toggleFollow);
   $("editButton").addEventListener("click", openEditStory);
   $("deleteButton").addEventListener("click", deleteStory);
-  $("authNavButton").addEventListener("keydown", e => { if (e.key === "Enter") openAuth("login"); });
   $("closeAuth").addEventListener("click", () => { pendingWrite = false; closeAuth(); });
   $("authModal").addEventListener("click", e => { if (e.target === $("authModal")) closeAuth(); });
   $("switchAuth").addEventListener("click", () => { authMode = authMode === "login" ? "register" : "login"; updateAuthForm(); });
   $("authForm").addEventListener("submit", submitAuth);
-  // Stories sidebar: opened with the menu button, mirrors the topic chips and the main actions.
-  const sideNav = $("sideNav"), sideBackdrop = $("sideBackdrop"), sideMenu = document.querySelector(".room-menu");
+  // Menu drawer: used on every page (the header collapses into it on phones).
+  const sideNav = $("sideNav"), sideBackdrop = $("sideBackdrop"), sideMenu = document.querySelector(".menu-btn");
+  async function goTopic(category) { activeFilter = category; showStories(); await refreshBlogs(); }
   function setSide(open) {
+    const wasOpen = sideNav.classList.contains("open");
     sideNav.classList.toggle("open", open);
     sideNav.setAttribute("aria-hidden", String(!open));
     sideBackdrop.hidden = !open;
     sideMenu.setAttribute("aria-expanded", String(open));
-    if (!open) return;
+    if (!open) { if (wasOpen) sideMenu.focus(); return; }
     $("sideAuth").textContent = currentUser ? "Sign out" : "Sign in";
     const box = $("sideTopics");
     box.innerHTML = "";
-    document.querySelectorAll("#latest-stories .chip").forEach((chip) => {
+    const onStories = document.body.classList.contains("stories-page");
+    ["All", ...CATEGORIES].forEach((name) => {
       const b = document.createElement("button");
       b.type = "button";
-      b.textContent = chip.textContent.trim();
-      b.setAttribute("aria-pressed", chip.getAttribute("aria-pressed") || "false");
-      b.addEventListener("click", () => { chip.click(); setSide(false); });
+      b.textContent = name;
+      b.setAttribute("aria-pressed", String(onStories && activeFilter === name));
+      b.addEventListener("click", () => { setSide(false); goTopic(name); });
       box.appendChild(b);
     });
+    sideNav.querySelector(".side-close").focus();
   }
   sideMenu.addEventListener("click", () => setSide(true));
   sideBackdrop.addEventListener("click", () => setSide(false));
   sideNav.querySelector(".side-close").addEventListener("click", () => setSide(false));
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape") setSide(false); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && sideNav.classList.contains("open")) setSide(false); });
   sideNav.querySelectorAll("[data-side]").forEach((btn) => btn.addEventListener("click", () => {
     const act = btn.getAttribute("data-side");
     setSide(false);
@@ -724,7 +730,7 @@ function pastel(name) {
     else if (act === "write") $("navWrite").click();
     else if (act === "theme") $("theme").click();
     else if (act === "auth") $(currentUser ? "signOutButton" : "authNavButton").click();
-    else if (act === "all") { const first = document.querySelector("#latest-stories .chip"); if (first) first.click(); }
+    else if (act === "all") goTopic("All");
   }));
 
   // Theme: use the saved choice, else follow the system, so the stories page and home page always agree.
@@ -749,7 +755,7 @@ function pastel(name) {
   function initSiteFooter() {
     const footer = document.querySelector(".site-footer");
     if (!footer) return;
-    const targets = { latest: "navLatest", topics: "navTopics", write: "navWrite", signin: "authNavButton", signout: "signOutButton" };
+    const targets = { latest: "navLatest", write: "navWrite", signin: "authNavButton", signout: "signOutButton" };
     footer.addEventListener("click", (e) => {
       const el = e.target.closest("[data-footer-action]");
       const target = el && $(targets[el.dataset.footerAction]);
