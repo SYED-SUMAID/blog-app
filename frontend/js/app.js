@@ -234,7 +234,18 @@
   const BATCH = 8; // stories per request (cursor paging)
   let nextCursor = null, feedDone = false, feedLoading = false, feedError = false;
   let shownCount = 0, feedKey = "", feedTicket = 0, listScroll = 0;
+  const COVER_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-8 9"/></svg>';
   const SKELETON = '<div class="skel" aria-hidden="true"><i></i><i></i><i></i><i class="s"></i></div>';
+  function renderWriters() {
+    if (searchTerm) return; // keep the list steady while a writer or search is being viewed
+    const count = new Map();
+    blogs.forEach(b => { const n = String(authorName(b) || "").trim(); if (n) count.set(n, (count.get(n) || 0) + 1); });
+    const top = [...count.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6);
+    $("writersCard").hidden = !top.length;
+    $("writersList").innerHTML = top.map(([n, c]) =>
+      `<li><button class="writer" type="button" data-writer="${esc(n)}"><span class="av" aria-hidden="true">${esc(n.charAt(0).toUpperCase())}</span><span class="w-name">${esc(n)}</span><span class="w-count">${c}</span></button></li>`
+    ).join("");
+  }
   function renderBlogs({ append = false } = {}) {
     const grid = $("grid");
     // The filter bar always lists every category so it stays stable once the backend supplies them.
@@ -243,6 +254,10 @@
     $("chips").innerHTML = ["All", ...present].map(category =>
       `<button class="chip" type="button" data-filter="${category}" aria-pressed="${activeFilter === category}">${category}</button>`
     ).join("");
+    $("railTopics").innerHTML = ["All", ...present].map(category =>
+      `<button class="rail-link" type="button" data-filter="${category}" aria-pressed="${activeFilter === category}">${category}</button>`
+    ).join("");
+    renderWriters();
     $("count").textContent = feedDone && filtered.length ? `${filtered.length} ${filtered.length === 1 ? "story" : "stories"}` : "";
     const key = `${activeFilter}|${searchTerm}`;
     const keyChanged = key !== feedKey;
@@ -271,7 +286,9 @@
       const cat = esc(categoryOf(blog));
       // Cover image: the backend can send image_url / cover_image / image / thumbnail.
       const src = blog.image_url || blog.cover_image || blog.image || blog.thumbnail || "";
-      const media = src ? `<div class="media"><img src="${esc(src)}" alt="" loading="lazy" decoding="async"></div>` : "";
+      const media = src
+        ? `<div class="media"><img src="${esc(src)}" alt="" loading="lazy" decoding="async"></div>`
+        : `<div class="media media--empty" aria-hidden="true">${COVER_ICON}</div>`; // slot is kept so covers drop in without a layout change
       return `<article class="card">
         <div class="body">
           <div class="card-author"><span class="av" aria-hidden="true">${initial}</span><b>${author}</b>${when ? `<small>${when}</small>` : ""}</div>
@@ -504,6 +521,7 @@
     $("articleTitle").textContent = "Loading story…";
     $("articleContent").textContent = "";
     $("articleMeta").textContent = "";
+    $("articleCover").hidden = true;
     $("commentsList").textContent = "Loading conversation…";
     window.scrollTo({ top: 0, behavior: "smooth" });
     try {
@@ -512,6 +530,9 @@
       const shownTitle = plain(blog.title).trim();
       $("articleTitle").innerHTML = bidi(esc(shownTitle || "Untitled story"));
       document.querySelector(".article-kicker").textContent = categoryOf(blog);
+      const cover = blog.image_url || blog.cover_image || blog.image || blog.thumbnail || "";
+      $("articleCoverImg").onerror = () => { $("articleCover").hidden = true; };
+      $("articleCoverImg").src = cover; $("articleCover").hidden = !cover;
       $("articleContent").textContent = withoutTitle(plain(storyText(blog)), shownTitle);
       $("articleMeta").textContent = `By ${authorName(blog) || "Journal member"}`;
       const ownStory = currentUser && String(userId(currentUser)) === String(blog.author_id);
@@ -644,8 +665,7 @@
     if (!$("articlePage").classList.contains("hidden") || !$("editorPanel").classList.contains("hidden")) { showStories({ query: searchTerm }); if (!blogs.length) refreshBlogs(); }
   });
   $("homeLogo").addEventListener("click", showHome);
-  const storyDoor = document.querySelector(".story-door");
-  if (storyDoor) storyDoor.addEventListener("click", async e => { e.preventDefault(); showStories(); await refreshBlogs(); });
+  document.querySelectorAll("[data-topic]").forEach(row => row.addEventListener("click", () => goTopic(row.getAttribute("data-topic"))));
   window.addEventListener("popstate", () => {
     const storyHash = location.hash.match(/^#story-(.+)$/);
     if (storyHash) { showStories({ query: searchTerm, navigate: false }); openArticle(storyHash[1]); return; }
@@ -663,11 +683,18 @@
     const button = e.target.closest("[data-open-blog]");
     if (button) openArticle(button.getAttribute("data-open-blog"));
   });
-  $("grid").addEventListener("error", e => { if (e.target.tagName === "IMG") e.target.closest(".media")?.remove(); }, true);
-  $("chips").addEventListener("click", e => {
+  $("grid").addEventListener("error", e => { if (e.target.tagName === "IMG") { const m = e.target.closest(".media"); if (m) { m.classList.add("media--empty"); m.innerHTML = COVER_ICON; } } }, true);
+  [$("chips"), $("railTopics")].forEach(box => box.addEventListener("click", e => {
     const button = e.target.closest("[data-filter]");
     if (!button) return;
     activeFilter = button.getAttribute("data-filter");
+    refreshBlogs();
+  }));
+  $("backToHome").addEventListener("click", () => showHome());
+  $("writersList").addEventListener("click", e => {
+    const b = e.target.closest("[data-writer]");
+    if (!b) return;
+    searchTerm = b.getAttribute("data-writer"); $("blogQuery").value = searchTerm; activeFilter = "All";
     refreshBlogs();
   });
   $("editorForm").addEventListener("submit", publishStory);
@@ -741,15 +768,61 @@
     const dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
     root.setAttribute("data-theme", saved === "light" || saved === "dark" ? saved : (dark ? "dark" : "light"));
   })();
-  $("theme").addEventListener("click", () => {
+  $("theme").addEventListener("click", (e) => {
     const root = document.documentElement;
     const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     const current = root.getAttribute("data-theme") || (systemDark ? "dark" : "light");
     const next = current === "dark" ? "light" : "dark";
     root.setAttribute("data-theme", next);
     store.set("journal_theme", next);
-    $("theme").blur(); // drop the focus ring left on the button after a mouse click
+    if (e.detail) $("theme").blur(); // drop the focus ring after a mouse click, keep it for keyboard users
   });
+
+  // Lamp: a pendant light that is the theme switch. Drag the cord down, tap it, or press Enter.
+  (function initLamp() {
+    const lamp = $("theme"), body = lamp.querySelector(".lamp-body");
+    const line = lamp.querySelector(".lamp-cord"), hit = lamp.querySelector(".lamp-hit"), handle = lamp.querySelector(".lamp-handle");
+    const REST = 104, MAX = 16, HEIGHT = 120; // SVG units
+    const calm = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let pull = 0, raf = 0, startY = null, dragged = false;
+    const draw = (p) => {
+      pull = p;
+      line.setAttribute("y2", REST + p); hit.setAttribute("y2", REST + p); handle.setAttribute("y", REST + p);
+      body.setAttribute("transform", `rotate(${(p * 0.2).toFixed(2)} 30 0)`); // the whole lamp swings a little
+    };
+    function spring(from, kick) { // cord snaps back with a bounce
+      cancelAnimationFrame(raf);
+      if (calm()) { draw(0); return; }
+      let x = from, v = kick, last = performance.now();
+      const step = (now) => {
+        const dt = Math.min(0.032, (now - last) / 1000); last = now;
+        v += (-200 * x - 9 * v) * dt; x += v * dt;
+        if (Math.abs(x) < 0.12 && Math.abs(v) < 1) { draw(0); return; }
+        draw(Math.max(-5, x));
+        raf = requestAnimationFrame(step);
+      };
+      raf = requestAnimationFrame(step);
+    }
+    lamp.addEventListener("pointerdown", (e) => {
+      if (e.button) return;
+      startY = e.clientY; dragged = false; cancelAnimationFrame(raf);
+      try { lamp.setPointerCapture(e.pointerId); } catch {}
+    });
+    lamp.addEventListener("pointermove", (e) => {
+      if (startY === null) return;
+      const dy = Math.max(0, (e.clientY - startY) * (HEIGHT / lamp.getBoundingClientRect().height));
+      if (dy > 2) dragged = true;
+      draw(MAX * (1 - Math.exp(-dy / MAX))); // the cord resists the further you pull
+    });
+    const release = () => { if (startY === null) return; startY = null; spring(pull, 0); };
+    lamp.addEventListener("pointerup", release);
+    lamp.addEventListener("pointercancel", release);
+    // The click (mouse, touch or keyboard) switches the theme; a plain tap or key press gets a short tug.
+    lamp.addEventListener("click", () => { const wasDrag = dragged; dragged = false; if (!wasDrag) spring(0, 130); });
+    const sync = () => lamp.setAttribute("aria-checked", String(document.documentElement.getAttribute("data-theme") === "dark"));
+    new MutationObserver(sync).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    sync();
+  })();
 
   // Site footer: reuses the existing nav buttons so no navigation logic is duplicated.
   function initSiteFooter() {

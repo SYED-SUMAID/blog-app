@@ -5,13 +5,13 @@
 <meta content="width=device-width, initial-scale=1, viewport-fit=cover" name="viewport"/>
 <title>Journal — Stories worth your time</title>
 <meta name="description" content="Journal: thoughtful stories and perspectives from a community of writers."/>
-<meta name="theme-color" content="#2f6853"/>
+<meta name="theme-color" content="#ffd200"/>
 <meta property="og:type" content="website"/><meta property="og:title" content="Journal — Stories worth your time"/><meta property="og:description" content="Thoughtful stories and perspectives from a community of writers."/>
 <meta name="twitter:card" content="summary"/>
 <meta name="journal-api-base" content=""/><!-- Set to your backend address when deploying, e.g. https://api.example.com -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f6853'/%3E%3Ctext x='16' y='23' font-size='20' text-anchor='middle' font-family='Georgia,serif' fill='%23f3f7ec'%3EJ%3C/text%3E%3C/svg%3E"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&amp;family=DM+Sans:wght@400;500;700&amp;family=Noto+Naskh+Arabic:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&amp;family=Noto+Naskh+Arabic:wght@500&amp;display=swap" rel="stylesheet"/>
 <script>try{var t=localStorage.getItem("journal_theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
 <link rel="stylesheet" href="css/style.css"/>
 </head>
@@ -23,12 +23,23 @@
 <button aria-label="Journal home" class="logo" id="homeLogo" type="button"><span aria-hidden="true" class="mark"><i></i><i></i><i></i><i></i></span>Journal</button>
 <nav class="site-nav" aria-label="Primary">
 <button class="nav-link" data-action="latest" id="navLatest" type="button">Stories</button>
-<button class="icon-btn" id="theme" type="button" aria-label="Switch between light and dark theme"><svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.25" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10 2.75a7.25 7.25 0 0 1 0 14.5z" fill="currentColor"/></svg></button>
 <button class="app-btn sm" data-action="write" id="navWrite" type="button">Write</button>
 <button class="app-btn secondary sm" id="authNavButton" type="button">Sign in</button>
 <button class="nav-signout hidden" id="signOutButton" type="button">Sign out</button>
 <button class="icon-btn menu-btn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="sideNav"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5.5h14M3 10h14M3 14.5h14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></button>
 </nav>
+<button class="lamp" id="theme" type="button" role="switch" aria-checked="false" aria-label="Dark theme" title="Pull the cord to switch the light"><svg class="lamp-svg" viewBox="0 0 60 120" width="60" height="120" aria-hidden="true">
+<defs><radialGradient id="lampGlow" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ffd200" stop-opacity=".6"/><stop offset="1" stop-color="#ffd200" stop-opacity="0"/></radialGradient><radialGradient id="lampGlowW" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fff" stop-opacity=".7"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>
+<g class="lamp-body">
+<line class="lamp-wire" x1="30" y1="0" x2="30" y2="14"/>
+<ellipse class="glow" cx="30" cy="50" rx="46" ry="38"/>
+<circle class="lamp-bulb" cx="30" cy="40" r="8.5"/>
+<path class="lamp-shade" d="M20 14h20l18 26H2z"/>
+<line class="lamp-cord" x1="50" y1="40" x2="50" y2="104"/>
+<line class="lamp-hit" x1="50" y1="40" x2="50" y2="104"/>
+<rect class="lamp-handle" x="46.5" y="104" width="7" height="15" rx="3.5"/>
+</g>
+</svg></button>
 </div>
 </header>
 
@@ -42,30 +53,45 @@
 
 <main id="content">
 <section class="hero" aria-labelledby="heroTitle">
-<div class="hero-copy">
-<h1 id="heroTitle">Stories worth your time.</h1>
+<div class="wrap hero-inner">
+<h1 id="heroTitle"><span>Stories</span><span>worth your</span><span>time.</span></h1>
+<div class="hero-foot">
 <p class="lede">Read thoughtful posts from writers who care about clear ideas, and share your own. A small community with no noise and no rush.</p>
+<div class="hero-search">
 <form class="search" id="sf" role="search"><input aria-label="Search stories" id="q" placeholder="Search stories and writers" type="search"/><button type="submit">Search</button></form>
 <p class="note">Free to read. Write anytime.</p>
 </div>
-<figure class="hero-art"><img alt="" class="art" role="presentation" src="img/painting.jpg" width="1171" height="675" fetchpriority="high"/></figure>
+</div>
+</div>
 </section>
 
-<section class="home-stories" id="stories">
-<a aria-label="Browse all Journal stories" class="story-door" href="#stories">
-<span class="door-title">Read what the community is writing</span>
-<span class="door-copy">Technology, history, religion, fashion, markets and everyday life.</span>
-<span class="door-action">Browse all stories</span>
-</a>
+<section class="topics home-stories" id="stories" aria-labelledby="topicsTitle">
+<div class="wrap">
+<div class="topics-head"><h2 id="topicsTitle">Browse by topic</h2><p>Pick a subject and start reading.</p></div>
+<ul class="topic-list">
+<li><button class="topic-row" type="button" data-topic="Technology"><span class="t-num">01</span><span class="t-name">Technology</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></li>
+<li><button class="topic-row" type="button" data-topic="History"><span class="t-num">02</span><span class="t-name">History</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></li>
+<li><button class="topic-row" type="button" data-topic="Religion"><span class="t-num">03</span><span class="t-name">Religion</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></li>
+<li><button class="topic-row" type="button" data-topic="Fashion"><span class="t-num">04</span><span class="t-name">Fashion</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></li>
+<li><button class="topic-row" type="button" data-topic="Markets"><span class="t-num">05</span><span class="t-name">Markets</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></li>
+<li><button class="topic-row" type="button" data-topic="Lifestyle"><span class="t-num">06</span><span class="t-name">Lifestyle</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></li>
+<li><button class="topic-row" type="button" data-topic="All"><span class="t-num">All</span><span class="t-name">All stories</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></li>
+</ul>
+</div>
 </section>
 
 <section class="stories-room" hidden="" id="latest-stories" aria-labelledby="storiesTitle">
+<aside class="rail rail-left" aria-label="Topics"><p class="rail-title">Topics</p><div class="rail-topics" id="railTopics" role="group" aria-label="Filter by topic"></div></aside>
+<div class="feed">
+<button class="back-link" id="backToHome" type="button"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>Home</button>
 <div class="head"><h2 id="storiesTitle">Latest stories</h2><p class="sub">Fresh writing from the Journal community. Read, respond, and share your own perspective.</p></div>
 <form class="search blogs-search" id="blogSearch" role="search"><input aria-label="Search stories" id="blogQuery" placeholder="Search stories and writers" type="search"/><button type="submit">Search</button></form>
 <div class="bar2"><div aria-label="Filter by topic" class="chips" id="chips" role="group"></div><span id="count" role="status"></span></div>
 <div class="grid" id="grid"></div>
 <div id="feedSentinel" aria-hidden="true"></div>
 <div class="feed-end" id="feedEnd" role="status" aria-live="polite"></div>
+</div>
+<aside class="rail rail-right" aria-label="Writers"><div class="rail-card glow-card" id="writersCard" hidden><h3>Writers</h3><p>People publishing on Journal. Pick one to read their stories.</p><ul class="writers" id="writersList"></ul></div></aside>
 </section>
 
 <section aria-labelledby="editorHeading" class="app-panel hidden" id="editorPanel">
@@ -77,6 +103,8 @@
 <option value="" disabled selected>Choose a category…</option>
 <option>Technology</option><option>History</option><option>Religion</option><option>Fashion</option><option>Markets</option><option>Lifestyle</option><option>General</option>
 </select>
+<span class="field-label" id="coverLabel">Cover image</span>
+<div class="cover-drop" id="editorCover" role="group" aria-labelledby="coverLabel" aria-disabled="true"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-8 9"/></svg><span>Cover images are coming soon. This space is reserved for your story's image.</span></div>
 <label class="field-label" for="editorTitle">Title</label>
 <input class="app-field" id="editorTitle" maxlength="180" placeholder="Give your story a title…" required=""/>
 <label class="field-label" for="editorContent">Your story</label>
@@ -90,8 +118,9 @@
 </section>
 
 <div class="article-wrap hidden" id="articlePage">
-<button class="back-link" id="backToStories" type="button">← Back to stories</button>
+<button class="back-link" id="backToStories" type="button"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>Back to stories</button>
 <article class="article-shell">
+<figure class="article-cover" id="articleCover" hidden=""><img alt="" id="articleCoverImg"/></figure>
 <p class="article-kicker">Story</p>
 <h1 class="article-title" id="articleTitle">Loading story…</h1>
 <p class="article-byline" id="articleMeta"></p>
